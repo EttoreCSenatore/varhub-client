@@ -11,7 +11,9 @@ import {
   InputGroup,
   Tabs,
   Tab,
-  Alert
+  Alert,
+  Nav,
+  NavItem
 } from 'react-bootstrap';
 import { 
   Buildings, 
@@ -20,9 +22,15 @@ import {
   Google,
   EnvelopeFill,
   LockFill,
-  PersonFill
+  PersonFill,
+  BoxSeam,
+  PersonCircle,
+  EyeFill,
+  CameraFill,
+  QrCodeScan
 } from 'react-bootstrap-icons';
 import { useAuth } from '../context/AuthContext';
+import NavBar from '../components/NavBar';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -72,35 +80,7 @@ const HomePage = () => {
     setLoading(false);
     
     if (result.success) {
-      if (result.isOfflineMode) {
-        // Show offline mode message to the user
-        setError('Server connection issue detected. Using offline mode with sample data.');
-        // Redirect after a short delay so the user can see the message
-        setTimeout(() => {
-          navigate('/projects');
-        }, 2000);
-      } else {
-        navigate('/projects');
-      }
-    } else if (result.canUseOfflineMode) {
-      // Offer offline mode option
-      setError(
-        <>
-          {result.message} 
-          <div className="mt-2">
-            <Button 
-              variant="secondary" 
-              size="sm"
-              onClick={() => {
-                localStorage.setItem('useMockData', 'true');
-                window.location.reload();
-              }}
-            >
-              Use Offline Mode
-            </Button>
-          </div>
-        </>
-      );
+      navigate('/projects');
     } else {
       setError(result.message);
     }
@@ -139,35 +119,7 @@ const HomePage = () => {
     setLoading(false);
     
     if (result.success) {
-      if (result.isOfflineMode) {
-        // Show offline mode message to the user
-        setError('Server connection issue detected. Using offline mode with sample data.');
-        // Redirect after a short delay so the user can see the message
-        setTimeout(() => {
-          navigate('/projects');
-        }, 2000);
-      } else {
-        navigate('/projects');
-      }
-    } else if (result.canUseOfflineMode) {
-      // Offer offline mode option
-      setError(
-        <>
-          {result.message} 
-          <div className="mt-2">
-            <Button 
-              variant="secondary" 
-              size="sm"
-              onClick={() => {
-                localStorage.setItem('useMockData', 'true');
-                window.location.reload();
-              }}
-            >
-              Use Offline Mode
-            </Button>
-          </div>
-        </>
-      );
+      navigate('/projects');
     } else {
       setError(result.message);
     }
@@ -178,312 +130,258 @@ const HomePage = () => {
     setError('Google login is not implemented yet');
   };
 
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'login':
+        return (
+          <>
+            {error && <Alert variant="danger">{error}</Alert>}
+            
+            <Form onSubmit={handleLogin}>
+              <Form.Group className="mb-3">
+                <Form.Label>Email</Form.Label>
+                <InputGroup>
+                  <InputGroup.Text>
+                    <EnvelopeFill />
+                  </InputGroup.Text>
+                  <Form.Control
+                    type="email"
+                    placeholder="Your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={loading}
+                  />
+                </InputGroup>
+              </Form.Group>
+              
+              <Form.Group className="mb-4">
+                <Form.Label>Password</Form.Label>
+                <InputGroup>
+                  <InputGroup.Text>
+                    <LockFill />
+                  </InputGroup.Text>
+                  <Form.Control
+                    type="password"
+                    placeholder="Your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={loading}
+                  />
+                </InputGroup>
+              </Form.Group>
+              
+              <div className="d-grid mb-3">
+                <Button 
+                  variant="primary" 
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? 'Logging in...' : 'Login'}
+                </Button>
+              </div>
+              
+              <div className="text-center mb-3">
+                <small>OR</small>
+              </div>
+              
+              <div className="d-grid">
+                <Button 
+                  variant="outline-danger" 
+                  onClick={handleGoogleLogin}
+                  disabled={loading}
+                >
+                  <Google className="me-2" /> Login with Google
+                </Button>
+              </div>
+            </Form>
+          </>
+        );
+      case 'register':
+        return (
+          <>
+            {error && (
+              typeof error === 'string' 
+                ? <Alert variant="danger">{error}</Alert>
+                : error // If error is a React component (for offline mode option)
+            )}
+            
+            {/* Network error notice */}
+            {localStorage.getItem('autoOfflineMode') === 'true' && (
+              <Alert variant="warning" className="mb-3">
+                <Alert.Heading className="h6">Network Connection Issue</Alert.Heading>
+                <p className="mb-0">
+                  Server connection problem detected. The app has switched to offline mode with sample data.
+                  Some features may be limited.
+                </p>
+              </Alert>
+            )}
+            
+            <Form onSubmit={handleRegister}>
+              <Form.Group className="mb-3">
+                <Form.Label>Name</Form.Label>
+                <InputGroup>
+                  <InputGroup.Text>
+                    <PersonFill />
+                  </InputGroup.Text>
+                  <Form.Control
+                    type="text"
+                    placeholder="Your name"
+                    value={registerName}
+                    onChange={(e) => setRegisterName(e.target.value)}
+                    disabled={loading}
+                  />
+                </InputGroup>
+              </Form.Group>
+              
+              <Form.Group className="mb-3">
+                <Form.Label>Email</Form.Label>
+                <InputGroup>
+                  <InputGroup.Text>
+                    <EnvelopeFill />
+                  </InputGroup.Text>
+                  <Form.Control
+                    type="email"
+                    placeholder="Your email"
+                    value={registerEmail}
+                    onChange={(e) => setRegisterEmail(e.target.value)}
+                    disabled={loading}
+                  />
+                </InputGroup>
+              </Form.Group>
+              
+              <Form.Group className="mb-3">
+                <Form.Label>Password</Form.Label>
+                <InputGroup>
+                  <InputGroup.Text>
+                    <LockFill />
+                  </InputGroup.Text>
+                  <Form.Control
+                    type="password"
+                    placeholder="Choose a password (6+ characters)"
+                    value={registerPassword}
+                    onChange={(e) => setRegisterPassword(e.target.value)}
+                    disabled={loading}
+                  />
+                </InputGroup>
+              </Form.Group>
+              
+              <Form.Group className="mb-4">
+                <Form.Label>Confirm Password</Form.Label>
+                <InputGroup>
+                  <InputGroup.Text>
+                    <LockFill />
+                  </InputGroup.Text>
+                  <Form.Control
+                    type="password"
+                    placeholder="Confirm your password"
+                    value={registerConfirmPassword}
+                    onChange={(e) => setRegisterConfirmPassword(e.target.value)}
+                    disabled={loading}
+                  />
+                </InputGroup>
+              </Form.Group>
+              
+              <div className="d-grid mb-3">
+                <Button 
+                  variant="primary" 
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? 'Registering...' : 'Register'}
+                </Button>
+              </div>
+            </Form>
+          </>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
-    <Container className="py-3 py-md-5">
-      {/* Hero Section */}
-      <Row className="align-items-center py-3 py-md-5">
-        <Col lg={6} className="mb-4 mb-lg-0">
-          <h1 className="display-4 fw-bold mb-3 mb-md-4">Experience the Future with AR/VR Technology</h1>
+    <div className="home-container">
+      <NavBar />
+      <main className="d-flex flex-column align-items-center justify-content-center py-4">
+        {/* Welcome Section */}
+        <section className="welcome-section text-center mb-5 px-3">
+          <h1 className="display-4 mb-4">Welcome to VARhub</h1>
           <p className="lead mb-4">
-            VARhub makes it easy to create, share, and experience augmented and virtual reality content for education and training.
+            Your platform for interactive VR and AR experiences
           </p>
-          <div className="d-grid gap-2 d-md-flex">
+          <div className="d-flex flex-wrap justify-content-center gap-3">
+            <Button variant="primary" size="lg" onClick={() => navigate('/projects')}>
+              <BoxSeam className="me-2" />
+              Browse Projects
+            </Button>
             <Button 
-              variant="primary" 
+              variant="outline-primary" 
               size="lg" 
-              className="me-md-2"
               onClick={() => {
-                const loginSection = document.getElementById('login-section');
-                if (loginSection) {
-                  loginSection.scrollIntoView({ behavior: 'smooth' });
+                const loginElement = document.getElementById('login-register-section');
+                if (loginElement) {
+                  loginElement.scrollIntoView({ behavior: 'smooth' });
+                  setActiveTab('login');
                 }
               }}
             >
-              Get Started
-            </Button>
-            <Button as={Link} to="/projects" variant="outline-primary" size="lg">
-              Explore Projects
+              <PersonCircle className="me-2" />
+              Log In / Register
             </Button>
           </div>
-        </Col>
-        <Col lg={6}>
-          <Card className="shadow-sm border-0">
-            <Card.Body className="p-3 p-md-4">
-              <h2 className="text-center mb-4" id="login-section">Welcome</h2>
-              
-              <Tabs 
-                activeKey={activeTab} 
-                onSelect={(k) => {
-                  setActiveTab(k);
-                  setError('');
-                }}
-                className="mb-4"
-              >
-                <Tab eventKey="login" title="Login">
-                  {error && (
-                    typeof error === 'string' 
-                      ? <Alert variant="danger">{error}</Alert>
-                      : error // If error is a React component (for offline mode option)
-                  )}
-                  
-                  {/* Network error notice */}
-                  {localStorage.getItem('autoOfflineMode') === 'true' && (
-                    <Alert variant="warning" className="mb-3">
-                      <Alert.Heading className="h6">Network Connection Issue</Alert.Heading>
-                      <p className="mb-0">
-                        Server connection problem detected. The app has switched to offline mode with sample data.
-                        Some features may be limited.
-                      </p>
-                    </Alert>
-                  )}
-                  
-                  <Form onSubmit={handleLogin}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Email</Form.Label>
-                      <InputGroup>
-                        <InputGroup.Text>
-                          <EnvelopeFill />
-                        </InputGroup.Text>
-                        <Form.Control
-                          type="email"
-                          placeholder="Your email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          disabled={loading}
-                        />
-                      </InputGroup>
-                    </Form.Group>
-                    
-                    <Form.Group className="mb-4">
-                      <Form.Label>Password</Form.Label>
-                      <InputGroup>
-                        <InputGroup.Text>
-                          <LockFill />
-                        </InputGroup.Text>
-                        <Form.Control
-                          type="password"
-                          placeholder="Your password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          disabled={loading}
-                        />
-                      </InputGroup>
-                    </Form.Group>
-                    
-                    <div className="d-grid mb-3">
-                      <Button 
-                        variant="primary" 
-                        type="submit"
-                        disabled={loading}
-                      >
-                        {loading ? 'Logging in...' : 'Login'}
-                      </Button>
-                    </div>
-                    
-                    <div className="text-center mb-3">
-                      <small>OR</small>
-                    </div>
-                    
-                    <div className="d-grid">
-                      <Button 
-                        variant="outline-danger" 
-                        onClick={handleGoogleLogin}
-                        disabled={loading}
-                      >
-                        <Google className="me-2" /> Login with Google
-                      </Button>
-                    </div>
-                    
-                    <div className="text-center mt-3">
-                      <small className="text-muted">
-                        Having trouble logging in? Try{' '}
-                        <a href="/offline-mode.html" target="_blank" rel="noopener noreferrer">
-                          offline mode
-                        </a>
-                      </small>
-                    </div>
-                  </Form>
-                </Tab>
-                
-                <Tab eventKey="register" title="Register">
-                  {error && (
-                    typeof error === 'string' 
-                      ? <Alert variant="danger">{error}</Alert>
-                      : error // If error is a React component (for offline mode option)
-                  )}
-                  
-                  {/* Network error notice */}
-                  {localStorage.getItem('autoOfflineMode') === 'true' && (
-                    <Alert variant="warning" className="mb-3">
-                      <Alert.Heading className="h6">Network Connection Issue</Alert.Heading>
-                      <p className="mb-0">
-                        Server connection problem detected. The app has switched to offline mode with sample data.
-                        Some features may be limited.
-                      </p>
-                    </Alert>
-                  )}
-                  
-                  <Form onSubmit={handleRegister}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Name</Form.Label>
-                      <InputGroup>
-                        <InputGroup.Text>
-                          <PersonFill />
-                        </InputGroup.Text>
-                        <Form.Control
-                          type="text"
-                          placeholder="Your name"
-                          value={registerName}
-                          onChange={(e) => setRegisterName(e.target.value)}
-                          disabled={loading}
-                        />
-                      </InputGroup>
-                    </Form.Group>
-                    
-                    <Form.Group className="mb-3">
-                      <Form.Label>Email</Form.Label>
-                      <InputGroup>
-                        <InputGroup.Text>
-                          <EnvelopeFill />
-                        </InputGroup.Text>
-                        <Form.Control
-                          type="email"
-                          placeholder="Your email"
-                          value={registerEmail}
-                          onChange={(e) => setRegisterEmail(e.target.value)}
-                          disabled={loading}
-                        />
-                      </InputGroup>
-                    </Form.Group>
-                    
-                    <Form.Group className="mb-3">
-                      <Form.Label>Password</Form.Label>
-                      <InputGroup>
-                        <InputGroup.Text>
-                          <LockFill />
-                        </InputGroup.Text>
-                        <Form.Control
-                          type="password"
-                          placeholder="Choose a password (6+ characters)"
-                          value={registerPassword}
-                          onChange={(e) => setRegisterPassword(e.target.value)}
-                          disabled={loading}
-                        />
-                      </InputGroup>
-                    </Form.Group>
-                    
-                    <Form.Group className="mb-4">
-                      <Form.Label>Confirm Password</Form.Label>
-                      <InputGroup>
-                        <InputGroup.Text>
-                          <LockFill />
-                        </InputGroup.Text>
-                        <Form.Control
-                          type="password"
-                          placeholder="Confirm your password"
-                          value={registerConfirmPassword}
-                          onChange={(e) => setRegisterConfirmPassword(e.target.value)}
-                          disabled={loading}
-                        />
-                      </InputGroup>
-                    </Form.Group>
-                    
-                    <div className="d-grid mb-3">
-                      <Button 
-                        variant="primary" 
-                        type="submit"
-                        disabled={loading}
-                      >
-                        {loading ? 'Registering...' : 'Register'}
-                      </Button>
-                    </div>
-                    
-                    <div className="text-center mt-3">
-                      <small className="text-muted">
-                        Having trouble registering? Try{' '}
-                        <a href="/offline-mode.html" target="_blank" rel="noopener noreferrer">
-                          offline mode
-                        </a>
-                      </small>
-                    </div>
-                  </Form>
-                </Tab>
-              </Tabs>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+        </section>
 
-      {/* Features Section */}
-      <Row className="py-3 py-md-5">
-        <Col xs={12} className="text-center mb-4 mb-md-5">
-          <h2 className="fw-bold">Key Features</h2>
-          <p className="lead">Everything you need to create immersive experiences</p>
-        </Col>
-
-        <Col md={4} className="mb-4">
-          <Card className="h-100 shadow-sm border-0">
-            <Card.Body className="p-3 p-md-4 text-center">
-              <div className="icon-box mb-3 mb-md-4">
-                <Camera size={48} className="text-primary" />
+        {/* Login/Register Section */}
+        <section id="login-register-section" className="bg-light p-4 rounded-3 shadow-sm mb-5 w-100 max-width-500">
+          <Tab.Container id="login-register-tabs" activeKey={activeTab} onSelect={setActiveTab}>
+            <Tab.Content>
+              {renderTabContent()}
+            </Tab.Content>
+            <Nav variant="tabs" className="mb-3">
+              <Nav.Item>
+                <Nav.Link eventKey="login">Login</Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="register">Register</Nav.Link>
+              </Nav.Item>
+            </Nav>
+          </Tab.Container>
+        </section>
+        
+        {/* Features Section */}
+        <section className="features-section text-center mb-5 px-3">
+          <h2 className="mb-4">Why Choose VARhub?</h2>
+          <Row className="g-4">
+            <Col md={4}>
+              <div className="feature-item p-3">
+                <div className="feature-icon mb-3">
+                  <EyeFill size={32} />
+                </div>
+                <h3 className="h5">Immersive VR</h3>
+                <p>Experience stunning virtual reality worlds</p>
               </div>
-              <Card.Title>AR Scanning</Card.Title>
-              <Card.Text>
-                Scan QR codes to instantly launch interactive AR experiences on any mobile device.
-              </Card.Text>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col md={4} className="mb-4">
-          <Card className="h-100 shadow-sm border-0">
-            <Card.Body className="p-3 p-md-4 text-center">
-              <div className="icon-box mb-3 mb-md-4">
-                <Buildings size={48} className="text-primary" />
+            </Col>
+            <Col md={4}>
+              <div className="feature-item p-3">
+                <div className="feature-icon mb-3">
+                  <CameraFill size={32} />
+                </div>
+                <h3 className="h5">AR Visualization</h3>
+                <p>Bring 3D models into your real-world environment</p>
               </div>
-              <Card.Title>3D Model Library</Card.Title>
-              <Card.Text>
-                Access a growing collection of 3D models to enhance your educational content.
-              </Card.Text>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col md={4} className="mb-4">
-          <Card className="h-100 shadow-sm border-0">
-            <Card.Body className="p-3 p-md-4 text-center">
-              <div className="icon-box mb-3 mb-md-4">
-                <Diagram3 size={48} className="text-primary" />
+            </Col>
+            <Col md={4}>
+              <div className="feature-item p-3">
+                <div className="feature-icon mb-3">
+                  <QrCodeScan size={32} />
+                </div>
+                <h3 className="h5">QR Scanning</h3>
+                <p>Quickly access content with our QR scanner</p>
               </div>
-              <Card.Title>Easy Content Management</Card.Title>
-              <Card.Text>
-                Create, organize, and share your AR/VR projects with intuitive management tools.
-              </Card.Text>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* CTA Section for Mobile */}
-      <Row className="d-lg-none py-4 py-md-5 bg-light rounded-3 mt-4 mt-md-5 p-3 p-md-5">
-        <Col xs={12} className="text-center">
-          <h2 className="fw-bold mb-3 mb-md-4">Ready to Get Started?</h2>
-          <p className="lead mb-3 mb-md-4">Join thousands of educators and trainers already using VARhub</p>
-          <Button 
-            variant="primary" 
-            size="lg"
-            onClick={() => {
-              const loginSection = document.getElementById('login-section');
-              if (loginSection) {
-                loginSection.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
-          >
-            Create Your Account
-          </Button>
-        </Col>
-      </Row>
-    </Container>
+            </Col>
+          </Row>
+        </section>
+      </main>
+    </div>
   );
 };
 
