@@ -112,11 +112,11 @@ const HomePage = () => {
   };
 
   return (
-    <Container className="py-5">
+    <Container className="py-3 py-md-5">
       {/* Hero Section */}
-      <Row className="align-items-center py-5">
-        <Col lg={6} className="mb-5 mb-lg-0">
-          <h1 className="display-4 fw-bold mb-4">Experience the Future with AR/VR Technology</h1>
+      <Row className="align-items-center py-3 py-md-5">
+        <Col lg={6} className="mb-4 mb-lg-0">
+          <h1 className="display-4 fw-bold mb-3 mb-md-4">Experience the Future with AR/VR Technology</h1>
           <p className="lead mb-4">
             VARhub makes it easy to create, share, and experience augmented and virtual reality content for education and training.
           </p>
@@ -137,16 +137,16 @@ const HomePage = () => {
       </Row>
 
       {/* Features Section */}
-      <Row className="py-5">
-        <Col xs={12} className="text-center mb-5">
+      <Row className="py-3 py-md-5">
+        <Col xs={12} className="text-center mb-4 mb-md-5">
           <h2 className="fw-bold">Key Features</h2>
           <p className="lead">Everything you need to create immersive experiences</p>
         </Col>
 
         <Col md={4} className="mb-4">
           <Card className="h-100 shadow-sm border-0">
-            <Card.Body className="p-4 text-center">
-              <div className="icon-box mb-4">
+            <Card.Body className="p-3 p-md-4 text-center">
+              <div className="icon-box mb-3 mb-md-4">
                 <Camera size={48} className="text-primary" />
               </div>
               <Card.Title>AR Scanning</Card.Title>
@@ -159,8 +159,8 @@ const HomePage = () => {
 
         <Col md={4} className="mb-4">
           <Card className="h-100 shadow-sm border-0">
-            <Card.Body className="p-4 text-center">
-              <div className="icon-box mb-4">
+            <Card.Body className="p-3 p-md-4 text-center">
+              <div className="icon-box mb-3 mb-md-4">
                 <Buildings size={48} className="text-primary" />
               </div>
               <Card.Title>3D Model Library</Card.Title>
@@ -173,8 +173,8 @@ const HomePage = () => {
 
         <Col md={4} className="mb-4">
           <Card className="h-100 shadow-sm border-0">
-            <Card.Body className="p-4 text-center">
-              <div className="icon-box mb-4">
+            <Card.Body className="p-3 p-md-4 text-center">
+              <div className="icon-box mb-3 mb-md-4">
                 <Diagram3 size={48} className="text-primary" />
               </div>
               <Card.Title>Easy Content Management</Card.Title>
@@ -187,10 +187,10 @@ const HomePage = () => {
       </Row>
 
       {/* CTA Section */}
-      <Row className="py-5 bg-light rounded-3 mt-5 p-5">
+      <Row className="py-4 py-md-5 bg-light rounded-3 mt-4 mt-md-5 p-3 p-md-5">
         <Col xs={12} className="text-center">
-          <h2 className="fw-bold mb-4">Ready to Get Started?</h2>
-          <p className="lead mb-4">Join thousands of educators and trainers already using VARhub</p>
+          <h2 className="fw-bold mb-3 mb-md-4">Ready to Get Started?</h2>
+          <p className="lead mb-3 mb-md-4">Join thousands of educators and trainers already using VARhub</p>
           <Button as={Link} to="/login" variant="primary" size="lg">
             Create Your Account
           </Button>
