@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import jsQR from 'jsqr';
+import { Html5Qrcode } from 'html5-qrcode';
 import ARViewer from './ARViewer';
 import { Spinner, Alert, Button, Card } from 'react-bootstrap';
 import api from '../utils/api';
@@ -23,6 +24,8 @@ const QRScanner = () => {
   const canvasRef = useRef(null);
   const scannerIntervalRef = useRef(null);
   const streamRef = useRef(null);
+  const html5QrScannerRef = useRef(null);
+  const qrReaderDivRef = useRef(null);
 
   // Start or stop camera based on cameraActive state
   useEffect(() => {
@@ -42,6 +45,67 @@ const QRScanner = () => {
   const startCamera = async () => {
     try {
       setCameraError(null);
+      
+      // Try the HTML5QR scanner first
+      if (qrReaderDivRef.current) {
+        try {
+          const html5QrScanner = new Html5Qrcode("qr-reader");
+          html5QrScannerRef.current = html5QrScanner;
+          
+          const qrConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
+          
+          const cameras = await Html5Qrcode.getCameras();
+          if (cameras && cameras.length > 0) {
+            const cameraId = cameras[cameras.length - 1].id; // Use the last camera (usually back camera on phones)
+            
+            html5QrScanner.start(
+              cameraId, 
+              qrConfig,
+              (decodedText) => {
+                console.log("QR Code detected via Html5Qrcode:", decodedText);
+                setResult(decodedText);
+                html5QrScanner.stop();
+                setScanningActive(false);
+              },
+              (errorMessage) => {
+                // QR Code scanning is ongoing, ignore intermediate errors
+                if (scanAttempts % 50 === 0) {
+                  console.log(`Html5Qrcode scanning ongoing...`, errorMessage);
+                }
+              }
+            )
+            .catch((err) => {
+              console.error("Html5Qrcode failed to start camera, falling back to manual implementation", err);
+              startLegacyCamera();
+            });
+            
+            setScanningActive(true);
+            return;
+          } else {
+            console.warn("No cameras found via Html5Qrcode, falling back to manual implementation");
+            startLegacyCamera();
+          }
+        } catch (err) {
+          console.error("Error initializing Html5Qrcode, falling back to manual implementation", err);
+          startLegacyCamera();
+        }
+      } else {
+        startLegacyCamera();
+      }
+    } catch (err) {
+      console.error('Camera access error:', err);
+      setCameraError(
+        err.name === 'NotAllowedError' 
+          ? 'Camera access denied. Please grant permission to use your camera.'
+          : `Camera error: ${err.message || 'Could not access camera'}`
+      );
+      setCameraActive(false);
+    }
+  };
+  
+  // Start camera using the legacy approach (manual frame processing)
+  const startLegacyCamera = async () => {
+    try {
       const constraints = { 
         video: { 
           facingMode: 'environment',
@@ -61,7 +125,7 @@ const QRScanner = () => {
         };
       }
     } catch (err) {
-      console.error('Camera access error:', err);
+      console.error('Legacy camera access error:', err);
       setCameraError(
         err.name === 'NotAllowedError' 
           ? 'Camera access denied. Please grant permission to use your camera.'
@@ -73,11 +137,25 @@ const QRScanner = () => {
 
   // Stop camera function
   const stopCamera = () => {
+    // Stop Html5Qrcode scanner if active
+    if (html5QrScannerRef.current) {
+      try {
+        html5QrScannerRef.current.stop().catch(err => {
+          console.error("Failed to stop Html5Qrcode scanner:", err);
+        });
+        html5QrScannerRef.current = null;
+      } catch (err) {
+        console.error("Error stopping Html5Qrcode:", err);
+      }
+    }
+    
+    // Stop legacy video stream if active
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
     
+    // Clear manual scanning interval if active
     if (scannerIntervalRef.current) {
       clearInterval(scannerIntervalRef.current);
       scannerIntervalRef.current = null;
@@ -92,11 +170,14 @@ const QRScanner = () => {
       clearInterval(scannerIntervalRef.current);
     }
     
+    // First try immediately
+    processFrame();
+    
     scannerIntervalRef.current = setInterval(() => {
       processFrame();
       // Increment scan attempts to give some feedback about ongoing scanning
       setScanAttempts(prev => prev + 1);
-    }, 200); // Scan every 200ms
+    }, 100); // Scan more frequently (every 100ms instead of 200ms)
   };
 
   // Process video frame to detect QR code
@@ -117,9 +198,24 @@ const QRScanner = () => {
     
     try {
       const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      const qrCode = jsQR(imageData.data, imageData.width, imageData.height);
+      
+      // Make sure we have valid image data
+      if (imageData.width === 0 || imageData.height === 0) {
+        console.warn("Invalid image data dimensions");
+        return;
+      }
+      
+      // Debug info
+      if (scanAttempts % 10 === 0) {
+        console.log(`Scanning frame: ${canvas.width}x${canvas.height}`);
+      }
+      
+      const qrCode = jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: "attemptBoth", // Try both normal and inverted
+      });
       
       if (qrCode) {
+        console.log("QR code detected:", qrCode.data);
         // QR code detected
         setResult(qrCode.data);
         // Stop scanning once a QR code is found
@@ -128,6 +224,9 @@ const QRScanner = () => {
         
         // Draw QR code location on canvas for visual feedback
         drawQRCodeHighlight(context, qrCode.location);
+        
+        // Make the canvas visible for feedback
+        canvasRef.current.style.display = 'block';
       }
     } catch (err) {
       console.error('QR scan error:', err);
@@ -202,6 +301,9 @@ const QRScanner = () => {
           <h3 className="mb-0">QR Code Scanner</h3>
         </Card.Header>
         <Card.Body>
+          {/* HTML5 QR Scanner container */}
+          <div id="qr-reader" ref={qrReaderDivRef} style={{ display: cameraActive && !result ? 'block' : 'none', width: '100%', maxWidth: '500px', margin: '0 auto' }}></div>
+          
           {/* Camera toggle button */}
           {!cameraActive && !result && (
             <div className="text-center mb-4">
@@ -227,8 +329,8 @@ const QRScanner = () => {
             </Alert>
           )}
           
-          {/* Video display when camera is active */}
-          {cameraActive && !result && (
+          {/* Video display when camera is active (Legacy approach) */}
+          {cameraActive && !result && !html5QrScannerRef.current && (
             <div className="qr-scanner-preview mb-3 position-relative">
               {/* Visible video preview */}
               <video 
@@ -239,11 +341,26 @@ const QRScanner = () => {
                 style={{ maxHeight: '50vh', backgroundColor: '#000' }} 
               />
               
-              {/* Hidden canvas for processing */}
+              {/* Canvas overlay for QR detection */}
               <canvas 
-                ref={canvasRef} 
+                ref={canvasRef}
+                className="position-absolute top-0 start-0 w-100 h-100" 
                 style={{ display: 'none' }} 
               />
+              
+              {/* QR code scan target overlay */}
+              <div className="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center pointer-events-none">
+                <div 
+                  style={{ 
+                    border: '2px dashed rgba(255, 255, 255, 0.5)', 
+                    width: '80%', 
+                    height: '80%', 
+                    maxWidth: '300px',
+                    maxHeight: '300px',
+                    borderRadius: '20px'
+                  }} 
+                />
+              </div>
               
               {/* Scanning indicator */}
               {scanningActive && (
@@ -255,7 +372,11 @@ const QRScanner = () => {
                       variant="light" 
                       className="me-2" 
                     />
-                    <small>Scanning for QR code... {scanAttempts > 20 && "Make sure the QR code is well-lit and clearly visible."}</small>
+                    <small>
+                      Scanning for QR code...
+                      {scanAttempts > 10 && " Center the code in the viewfinder."}
+                      {scanAttempts > 20 && " Make sure the QR code is well-lit and clearly visible."}
+                    </small>
                   </div>
                 </div>
               )}

@@ -16,6 +16,7 @@
     "axios": "^1.8.3",
     "bootstrap": "^5.3.3",
     "firebase": "^11.4.0",
+    "html5-qrcode": "^2.3.8",
     "jsqr": "^1.4.0",
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.9",
