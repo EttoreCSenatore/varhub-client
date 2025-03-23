@@ -293,6 +293,15 @@ const HomePage = () => {
                         <Google className="me-2" /> Login with Google
                       </Button>
                     </div>
+                    
+                    <div className="text-center mt-3">
+                      <small className="text-muted">
+                        Having trouble logging in? Try{' '}
+                        <a href="/offline-mode.html" target="_blank" rel="noopener noreferrer">
+                          offline mode
+                        </a>
+                      </small>
+                    </div>
                   </Form>
                 </Tab>
                 
@@ -387,6 +396,15 @@ const HomePage = () => {
                       >
                         {loading ? 'Registering...' : 'Register'}
                       </Button>
+                    </div>
+                    
+                    <div className="text-center mt-3">
+                      <small className="text-muted">
+                        Having trouble registering? Try{' '}
+                        <a href="/offline-mode.html" target="_blank" rel="noopener noreferrer">
+                          offline mode
+                        </a>
+                      </small>
                     </div>
                   </Form>
                 </Tab>

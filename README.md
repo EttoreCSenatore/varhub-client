@@ -45,6 +45,37 @@ npm start
 npm run build
 ```
 
+## Troubleshooting
+
+### CORS Issues
+
+If you encounter CORS errors (visible in the browser console as errors with messages like "Access to XMLHttpRequest has been blocked by CORS policy"), try the following:
+
+1. **Use Offline Mode**: The application has a built-in offline mode with sample data that works even when the API is inaccessible.
+   - Open the browser console and enter: `localStorage.setItem('useMockData', 'true'); window.location.reload()`
+   - Or visit `/offline-mode.html` for guided instructions
+
+2. **For developers**:
+   - Ensure the server has proper CORS configuration in both `server.js` and `vercel.json`
+   - Check that the client domain (`https://varhub-client.vercel.app`) is in the allowed origins list
+   - Verify that the appropriate headers are set:
+     ```
+     Access-Control-Allow-Origin: https://varhub-client.vercel.app
+     Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+     Access-Control-Allow-Headers: Content-Type, Authorization
+     Access-Control-Allow-Credentials: true
+     ```
+   - For local development, use the proxy configuration in `vite.config.js`
+
+### Authentication Problems
+
+If you're unable to log in:
+
+1. Check if there are any console errors related to CORS or network connectivity
+2. Try using offline mode (instructions above)
+3. Clear browser cache and cookies, then try again
+4. Use a different browser to rule out browser-specific issues
+
 ## Technologies
 
 - React

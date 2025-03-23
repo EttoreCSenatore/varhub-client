@@ -127,6 +127,11 @@ if (API_URL === 'offline') {
 
 // Direct access to the underlying XMLHttpRequest
 api.interceptors.request.use(config => {
+  // Don't override adapter if we're in offline mode
+  if (API_URL === 'offline') {
+    return config;
+  }
+  
   // Configure the XMLHttpRequest for better error handling
   config.adapter = config => {
     return new Promise((resolve, reject) => {
@@ -173,6 +178,9 @@ api.interceptors.request.use(config => {
         });
       }
       
+      // Crucial for CORS requests with credentials
+      xhr.withCredentials = true;
+      
       // Set timeout
       xhr.timeout = config.timeout;
       
@@ -209,6 +217,37 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Custom function to help diagnose CORS issues
+const debugCorsIssue = (url, error) => {
+  console.group('CORS Issue Debugging');
+  console.error(`CORS error detected on request to: ${url}`);
+  console.log('Error details:', error);
+  
+  // Check the request URL against allowed origins
+  const clientOrigin = window.location.origin;
+  console.log('Client origin:', clientOrigin);
+  console.log('API URL being accessed:', url);
+  
+  // Log which browsers handle CORS better
+  console.log('Browser compatibility note: If you\'re having CORS issues, Firefox and Safari sometimes handle CORS differently than Chrome.');
+  
+  // Suggest using offline mode
+  console.log('Suggestion: Try enabling offline mode by using the following command in the console:');
+  console.log('localStorage.setItem("useMockData", "true"); localStorage.setItem("autoOfflineMode", "true"); window.location.reload();');
+  
+  // Suggestion for developers
+  console.log('For developers: Ensure the server has proper CORS headers for', clientOrigin);
+  console.groupEnd();
+  
+  // You can also track these errors to your analytics
+  try {
+    // Send to your error tracking service if available
+    // e.g. Sentry, LogRocket, etc.
+  } catch (e) {
+    // Ignore tracking errors
+  }
+};
+
 // Response interceptor: Handle common errors
 api.interceptors.response.use(
   (response) => {
@@ -219,9 +258,26 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    // Detailed logging for all API errors
+    if (error.config) {
+      console.group(`API Error for ${error.config.method?.toUpperCase() || 'Unknown'} ${error.config.url || 'Unknown URL'}`);
+      console.error('Error:', error.message);
+      console.log('Status:', error.response?.status);
+      console.log('Status text:', error.response?.statusText);
+      console.log('Headers:', error.response?.headers);
+      console.log('Request config:', {
+        url: error.config.url,
+        method: error.config.method,
+        headers: error.config.headers,
+        baseURL: error.config.baseURL,
+        withCredentials: error.config.withCredentials
+      });
+      console.groupEnd();
+    }
+    
     // Handle CORS errors specifically - these typically return a status of 0
     if (error.response && error.response.status === 0) {
-      console.error('CORS error detected:', error);
+      debugCorsIssue(error.config?.url, error);
       
       // If this is a login endpoint, show a specific message
       if (error.config.url.includes('/api/auth/login')) {
@@ -243,6 +299,7 @@ api.interceptors.response.use(
     // Handle generic failed to load resource error
     if (error.message && error.message.includes('net::ERR_FAILED')) {
       console.error('Resource failed to load (net::ERR_FAILED):', error);
+      debugCorsIssue(error.config?.url, error);
       
       // Always switch to offline mode for net::ERR_FAILED errors
       console.log('Critical API endpoint failed, switching to offline mode automatically');
@@ -258,6 +315,7 @@ api.interceptors.response.use(
     // Handle CORS errors specifically
     if (error.message && error.message.includes('Network Error')) {
       console.error('Network or CORS error:', error);
+      debugCorsIssue(error.config?.url, error);
       
       // Log more details about the request
       const requestInfo = {
