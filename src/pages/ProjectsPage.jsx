@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { 
   Container, 
   Row, 
@@ -10,11 +9,13 @@ import {
   Alert 
 } from 'react-bootstrap';
 import api from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 
 const ProjectsPage = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { currentUser } = useAuth();
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -51,34 +52,39 @@ const ProjectsPage = () => {
   }
 
   return (
-    <Container className="mt-5">
-      <h2 className="mb-4">Projects</h2>
-      <Row xs={1} md={2} lg={3} className="g-4">
-        {projects.map((project) => (
-          <Col key={project.id}>
-            <Card className="h-100">
-              <Card.Img 
-                variant="top"
-                src={project.media_links?.images?.[0] || 'https://via.placeholder.com/300x200'}
-                style={{ height: '200px', objectFit: 'cover' }}
-              />
-              <Card.Body>
-                <Card.Title>{project.title}</Card.Title>
-                <Card.Text>{project.description}</Card.Text>
-                
-                {/* Download Button */}
-                <Button 
-                  variant="secondary"
-                  onClick={() => window.open(project.media_links?.pdf_url || '#', '_blank')}
-                  className="w-100"
-                >
-                  Download Brochure
-                </Button>
-              </Card.Body>
-            </Card>
-          </Col>
-        ))}
-      </Row>
+    <Container className="py-5">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1>My Projects</h1>
+        <Button variant="primary">Create New Project</Button>
+      </div>
+
+      {projects.length === 0 ? (
+        <Alert variant="info">
+          You don't have any projects yet. Create your first project to get started!
+        </Alert>
+      ) : (
+        <Row>
+          {projects.map((project) => (
+            <Col md={4} className="mb-4" key={project.id}>
+              <Card className="h-100 shadow-sm">
+                <Card.Img 
+                  variant="top" 
+                  src={project.thumbnail_url || '/placeholder-project.jpg'} 
+                  alt={project.name}
+                  style={{ height: '180px', objectFit: 'cover' }}
+                />
+                <Card.Body>
+                  <Card.Title>{project.name}</Card.Title>
+                  <Card.Text>{project.description}</Card.Text>
+                </Card.Body>
+                <Card.Footer className="bg-white border-0">
+                  <Button variant="outline-primary" className="w-100">View Details</Button>
+                </Card.Footer>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      )}
     </Container>
   );
 };

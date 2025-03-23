@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Container, 
@@ -10,7 +10,9 @@ import {
   Tabs, 
   Tab, 
   Alert, 
-  InputGroup
+  InputGroup,
+  Image,
+  Carousel
 } from 'react-bootstrap';
 import { 
   Google, 
@@ -23,12 +25,14 @@ import {
 } from 'react-bootstrap-icons';
 import api from '../utils/api';
 import { requestNotificationPermission } from '../firebase';
+import { useAuth } from '../context/AuthContext';
 
 const HomePage = () => {
   const [activeTab, setActiveTab] = useState('login');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   
   // Login form state
   const [loginEmail, setLoginEmail] = useState('');
@@ -39,6 +43,13 @@ const HomePage = () => {
   const [registerEmail, setRegisterEmail] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
+  
+  // Redirect to projects page if user is already logged in
+  useEffect(() => {
+    if (currentUser) {
+      navigate('/projects');
+    }
+  }, [currentUser, navigate]);
   
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -101,240 +112,90 @@ const HomePage = () => {
   };
 
   return (
-    <Container fluid className="p-0">
+    <Container className="py-5">
       {/* Hero Section */}
-      <div className="bg-primary text-white py-5">
-        <Container>
-          <Row className="align-items-center">
-            <Col lg={6} className="mb-5 mb-lg-0">
-              <h1 className="display-4 fw-bold mb-4">Experience Architecture in VR</h1>
-              <p className="lead mb-4">
-                VARhub provides immersive augmented reality experiences for architectural and engineering projects.
-                Visualize 3D models in real space before they're built.
-              </p>
-              <Button 
-                variant="light" 
-                size="lg" 
-                className="me-3 mb-3"
-                onClick={() => {
-                  setActiveTab('register');
-                  // Scroll to the form
-                  const formElement = document.querySelector('#auth-tabs');
-                  if (formElement) {
-                    formElement.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
-              >
-                Get Started
-              </Button>
-              <Button 
-                variant="outline-light" 
-                size="lg"
-                className="mb-3"
-                as={Link} 
-                to="/projects"
-              >
-                View Projects
-              </Button>
-            </Col>
-            <Col lg={6}>
-              <Card className="border-0 shadow">
-                <Card.Body className="p-4">
-                  <Tabs
-                    id="auth-tabs"
-                    activeKey={activeTab}
-                    onSelect={(k) => {
-                      setActiveTab(k);
-                      setError('');
-                    }}
-                    className="mb-4"
-                  >
-                    <Tab eventKey="login" title="Login">
-                      {error && <Alert variant="danger">{error}</Alert>}
-                      <Form onSubmit={handleLogin}>
-                        <Form.Group className="mb-3">
-                          <InputGroup>
-                            <InputGroup.Text>
-                              <EnvelopeFill />
-                            </InputGroup.Text>
-                            <Form.Control
-                              type="email"
-                              placeholder="Email Address"
-                              value={loginEmail}
-                              onChange={(e) => setLoginEmail(e.target.value)}
-                              required
-                            />
-                          </InputGroup>
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                          <InputGroup>
-                            <InputGroup.Text>
-                              <LockFill />
-                            </InputGroup.Text>
-                            <Form.Control
-                              type="password"
-                              placeholder="Password"
-                              value={loginPassword}
-                              onChange={(e) => setLoginPassword(e.target.value)}
-                              required
-                            />
-                          </InputGroup>
-                        </Form.Group>
-                        <Button 
-                          variant="primary" 
-                          type="submit" 
-                          className="w-100 mb-3"
-                          disabled={loading}
-                        >
-                          {loading ? 'Logging in...' : 'Login'}
-                        </Button>
-                        <Button
-                          variant="outline-secondary"
-                          className="w-100 d-flex align-items-center justify-content-center"
-                          onClick={handleGoogleLogin}
-                        >
-                          <Google className="me-2" /> Continue with Google
-                        </Button>
-                      </Form>
-                    </Tab>
-                    <Tab eventKey="register" title="Register">
-                      {error && <Alert variant="danger">{error}</Alert>}
-                      <Form onSubmit={handleRegister}>
-                        <Form.Group className="mb-3">
-                          <InputGroup>
-                            <InputGroup.Text>
-                              <PersonFill />
-                            </InputGroup.Text>
-                            <Form.Control
-                              type="text"
-                              placeholder="Full Name"
-                              value={registerName}
-                              onChange={(e) => setRegisterName(e.target.value)}
-                              required
-                            />
-                          </InputGroup>
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                          <InputGroup>
-                            <InputGroup.Text>
-                              <EnvelopeFill />
-                            </InputGroup.Text>
-                            <Form.Control
-                              type="email"
-                              placeholder="Email Address"
-                              value={registerEmail}
-                              onChange={(e) => setRegisterEmail(e.target.value)}
-                              required
-                            />
-                          </InputGroup>
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                          <InputGroup>
-                            <InputGroup.Text>
-                              <LockFill />
-                            </InputGroup.Text>
-                            <Form.Control
-                              type="password"
-                              placeholder="Password"
-                              value={registerPassword}
-                              onChange={(e) => setRegisterPassword(e.target.value)}
-                              required
-                            />
-                          </InputGroup>
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                          <InputGroup>
-                            <InputGroup.Text>
-                              <LockFill />
-                            </InputGroup.Text>
-                            <Form.Control
-                              type="password"
-                              placeholder="Confirm Password"
-                              value={registerConfirmPassword}
-                              onChange={(e) => setRegisterConfirmPassword(e.target.value)}
-                              required
-                            />
-                          </InputGroup>
-                        </Form.Group>
-                        <Button 
-                          variant="primary" 
-                          type="submit" 
-                          className="w-100 mb-3"
-                          disabled={loading}
-                        >
-                          {loading ? 'Creating Account...' : 'Create Account'}
-                        </Button>
-                        <Button
-                          variant="outline-secondary"
-                          className="w-100 d-flex align-items-center justify-content-center"
-                          onClick={handleGoogleLogin}
-                        >
-                          <Google className="me-2" /> Register with Google
-                        </Button>
-                      </Form>
-                    </Tab>
-                  </Tabs>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-        </Container>
-      </div>
-      
+      <Row className="align-items-center py-5">
+        <Col lg={6} className="mb-5 mb-lg-0">
+          <h1 className="display-4 fw-bold mb-4">Experience the Future with AR/VR Technology</h1>
+          <p className="lead mb-4">
+            VARhub makes it easy to create, share, and experience augmented and virtual reality content for education and training.
+          </p>
+          <div className="d-grid gap-2 d-md-flex">
+            <Button as={Link} to="/login" variant="primary" size="lg" className="me-md-2">
+              Get Started
+            </Button>
+            <Button as={Link} to="/projects" variant="outline-primary" size="lg">
+              Explore Projects
+            </Button>
+          </div>
+        </Col>
+        <Col lg={6}>
+          <div className="text-center">
+            <Image src="/vr-hero.jpg" alt="VR Experience" fluid className="rounded shadow-lg" />
+          </div>
+        </Col>
+      </Row>
+
       {/* Features Section */}
-      <Container className="py-5">
-        <h2 className="text-center mb-5">Why Choose VARhub?</h2>
-        <Row className="g-4">
-          <Col md={4}>
-            <Card className="h-100 border-0 shadow-sm">
-              <Card.Body className="text-center p-4">
-                <div className="feature-icon bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style={{ width: '80px', height: '80px' }}>
-                  <Buildings size={32} />
-                </div>
-                <h3 className="h4 mb-3">Architectural Visualization</h3>
-                <p className="mb-0">Experience buildings and structures in augmented reality before construction begins.</p>
-              </Card.Body>
-            </Card>
-          </Col>
-          <Col md={4}>
-            <Card className="h-100 border-0 shadow-sm">
-              <Card.Body className="text-center p-4">
-                <div className="feature-icon bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style={{ width: '80px', height: '80px' }}>
-                  <Diagram3 size={32} />
-                </div>
-                <h3 className="h4 mb-3">Detailed Analytics</h3>
-                <p className="mb-0">Access comprehensive data and insights about your projects and user interactions.</p>
-              </Card.Body>
-            </Card>
-          </Col>
-          <Col md={4}>
-            <Card className="h-100 border-0 shadow-sm">
-              <Card.Body className="text-center p-4">
-                <div className="feature-icon bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style={{ width: '80px', height: '80px' }}>
-                  <Camera size={32} />
-                </div>
-                <h3 className="h4 mb-3">QR Code Integration</h3>
-                <p className="mb-0">Scan QR codes to instantly view 3D models in augmented reality on-site.</p>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      </Container>
-      
+      <Row className="py-5">
+        <Col xs={12} className="text-center mb-5">
+          <h2 className="fw-bold">Key Features</h2>
+          <p className="lead">Everything you need to create immersive experiences</p>
+        </Col>
+
+        <Col md={4} className="mb-4">
+          <Card className="h-100 shadow-sm border-0">
+            <Card.Body className="p-4 text-center">
+              <div className="icon-box mb-4">
+                <Camera size={48} className="text-primary" />
+              </div>
+              <Card.Title>AR Scanning</Card.Title>
+              <Card.Text>
+                Scan QR codes to instantly launch interactive AR experiences on any mobile device.
+              </Card.Text>
+            </Card.Body>
+          </Card>
+        </Col>
+
+        <Col md={4} className="mb-4">
+          <Card className="h-100 shadow-sm border-0">
+            <Card.Body className="p-4 text-center">
+              <div className="icon-box mb-4">
+                <Buildings size={48} className="text-primary" />
+              </div>
+              <Card.Title>3D Model Library</Card.Title>
+              <Card.Text>
+                Access a growing collection of 3D models to enhance your educational content.
+              </Card.Text>
+            </Card.Body>
+          </Card>
+        </Col>
+
+        <Col md={4} className="mb-4">
+          <Card className="h-100 shadow-sm border-0">
+            <Card.Body className="p-4 text-center">
+              <div className="icon-box mb-4">
+                <Diagram3 size={48} className="text-primary" />
+              </div>
+              <Card.Title>Easy Content Management</Card.Title>
+              <Card.Text>
+                Create, organize, and share your AR/VR projects with intuitive management tools.
+              </Card.Text>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
       {/* CTA Section */}
-      <div className="bg-light py-5">
-        <Container className="text-center">
-          <h2 className="mb-4">Ready to experience the future of architectural visualization?</h2>
-          <Button 
-            variant="primary" 
-            size="lg" 
-            onClick={() => setActiveTab('register')}
-            href="#top"
-          >
-            Sign Up Now
+      <Row className="py-5 bg-light rounded-3 mt-5 p-5">
+        <Col xs={12} className="text-center">
+          <h2 className="fw-bold mb-4">Ready to Get Started?</h2>
+          <p className="lead mb-4">Join thousands of educators and trainers already using VARhub</p>
+          <Button as={Link} to="/login" variant="primary" size="lg">
+            Create Your Account
           </Button>
-        </Container>
-      </div>
+        </Col>
+      </Row>
     </Container>
   );
 };
