@@ -113,8 +113,8 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  // Disable withCredentials as it might be causing CORS issues
-  withCredentials: false,
+  // Enable withCredentials for cross-origin requests when not in offline mode
+  withCredentials: API_URL !== 'offline',
   // Reduce timeout to fail faster for better user experience
   timeout: 8000,
 });
@@ -219,22 +219,40 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    // Handle CORS errors specifically - these typically return a status of 0
+    if (error.response && error.response.status === 0) {
+      console.error('CORS error detected:', error);
+      
+      // If this is a login endpoint, show a specific message
+      if (error.config.url.includes('/api/auth/login')) {
+        console.error('Login failed due to CORS issue - switching to offline mode');
+        localStorage.setItem('useMockData', 'true');
+        localStorage.setItem('autoOfflineMode', 'true');
+        error.useOfflineMode = true;
+        
+        // Provide a more helpful error message
+        error.message = 'Login failed due to cross-origin restrictions. Switching to offline mode.';
+        
+        // Trigger a page reload after a short delay
+        setTimeout(() => {
+          window.location.href = '/'; // Redirect to home page
+        }, 500);
+      }
+    }
+    
     // Handle generic failed to load resource error
     if (error.message && error.message.includes('net::ERR_FAILED')) {
       console.error('Resource failed to load (net::ERR_FAILED):', error);
       
-      // If this is a common API endpoint, switch to offline mode automatically
-      const url = error.config?.url || '';
-      if (url.includes('/api/projects') || url.includes('/api/auth')) {
-        console.log('Critical API endpoint failed, switching to offline mode automatically');
-        localStorage.setItem('useMockData', 'true');
-        
-        // Add a flag to show a message to the user about automatic offline mode
-        localStorage.setItem('autoOfflineMode', 'true');
-        
-        // Instead of reloading immediately, let the caller handle the error
-        error.useOfflineMode = true;
-      }
+      // Always switch to offline mode for net::ERR_FAILED errors
+      console.log('Critical API endpoint failed, switching to offline mode automatically');
+      localStorage.setItem('useMockData', 'true');
+      
+      // Add a flag to show a message to the user about automatic offline mode
+      localStorage.setItem('autoOfflineMode', 'true');
+      
+      // Instead of reloading immediately, let the caller handle the error
+      error.useOfflineMode = true;
     }
     
     // Handle CORS errors specifically
@@ -249,16 +267,18 @@ api.interceptors.response.use(
         headers: error.config?.headers,
       };
       console.log('Request that caused the error:', requestInfo);
-    }
-    
-    // Handle timeout errors
-    if (error.message && error.message.includes('timeout')) {
-      console.error('Request timeout error:', error);
-    }
-    
-    // Handle no response errors
-    if (error.message && error.message.includes('No response received')) {
-      console.error('No response received error:', error);
+      
+      // Switch to offline mode for CORS errors
+      localStorage.setItem('useMockData', 'true');
+      localStorage.setItem('autoOfflineMode', 'true');
+      error.useOfflineMode = true;
+      
+      // Trigger page reload for auth-related endpoints
+      if (error.config?.url?.includes('/auth/')) {
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 500);
+      }
     }
     
     return Promise.reject(error);
