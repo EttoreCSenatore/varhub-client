@@ -1,7 +1,6 @@
 import React from 'react';  
 import { Routes, Route } from 'react-router-dom';  
 import HomePage from './pages/HomePage.jsx';  
-import LoginPage from './pages/LoginPage.jsx';  
 import ProjectsPage from './pages/ProjectsPage.jsx'; 
 import NavBar from './components/NavBar.jsx';
 import QRScannerPage from './pages/QRScannerPage';
@@ -30,7 +29,6 @@ function App() {
       <main className="flex-grow-1 pt-5 mt-4 px-2">
         <Routes>  
           <Route path="/" element={<HomePage />} />  
-          <Route path="/login" element={<LoginPage />} />  
           <Route 
             path="/projects" 
             element={
