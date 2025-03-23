@@ -107,7 +107,7 @@ const HomePage = () => {
         <Container>
           <Row className="align-items-center">
             <Col lg={6} className="mb-5 mb-lg-0">
-              <h1 className="display-4 fw-bold mb-4">Experience Architecture in Ettore</h1>
+              <h1 className="display-4 fw-bold mb-4">Experience Architecture in VR</h1>
               <p className="lead mb-4">
                 VARhub provides immersive augmented reality experiences for architectural and engineering projects.
                 Visualize 3D models in real space before they're built.
