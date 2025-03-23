@@ -280,6 +280,13 @@ const QRScanner = () => {
           console.log("S3 video detected:", url);
         }
         setVideoUrl(url);
+        
+        // Immediately open VR viewer in the same window for Cardboard compatibility
+        if (isVideoUrl && isMobile()) {
+          // For mobile devices, redirect to VR viewer immediately
+          window.location.href = `/vr-viewer?video=${encodeURIComponent(url)}`;
+          return;
+        }
       } else {
         // If not a video, offer to open it externally
         setError(`The scanned URL doesn't appear to be a video. Would you like to open it externally?`);
@@ -291,6 +298,11 @@ const QRScanner = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Check if the user is on a mobile device
+  const isMobile = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   };
 
   // Check if URL is likely a video
@@ -312,6 +324,11 @@ const QRScanner = () => {
         return true;
       }
       
+      // If S3 URL with MP4, definitely a video
+      if (url.includes('s3.') && url.endsWith('.mp4')) {
+        return true;
+      }
+      
       // If unsure, we'll assume it might be a video and let the player component handle it
       return true;
     } catch (err) {
@@ -328,6 +345,13 @@ const QRScanner = () => {
   const openExternalUrl = () => {
     if (result) {
       window.open(result, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  // Open in VR viewer
+  const openVRViewer = () => {
+    if (videoUrl) {
+      window.location.href = `/vr-viewer?video=${encodeURIComponent(videoUrl)}`;
     }
   };
 
@@ -468,11 +492,18 @@ const QRScanner = () => {
       </Card>
 
       {/* Video Player with VR Mode */}
-      {videoUrl && (
+      {videoUrl && !isMobile() && (
         <Card>
           <Card.Header className="d-flex justify-content-between align-items-center">
             <h4 className="mb-0">Video Player</h4>
             <div>
+              <Button 
+                variant="primary" 
+                onClick={openVRViewer}
+                className="me-2"
+              >
+                View in VR Mode
+              </Button>
               <Button 
                 variant="outline-secondary" 
                 size="sm" 
@@ -484,26 +515,20 @@ const QRScanner = () => {
           </Card.Header>
           <Card.Body>
             <div className="video-container mb-3">
-              {/* Standard HTML5 Video Player for better compatibility with MP4 files */}
-              <video 
-                src={videoUrl}
-                className="w-100"
-                style={{ height: '60vh' }}
-                controls
-                autoPlay
-                crossOrigin="anonymous"
-                playsInline
+              <ReactPlayer
+                url={videoUrl}
+                width="100%"
+                height="60vh"
+                controls={true}
+                playing={true}
+                config={{
+                  file: {
+                    attributes: {
+                      crossOrigin: "anonymous"
+                    }
+                  }
+                }}
               />
-            </div>
-
-            <div className="vr-controls d-flex justify-content-center mb-3">
-              <Button 
-                variant="primary" 
-                onClick={() => window.open(`/vr-viewer?video=${encodeURIComponent(videoUrl)}`, '_blank')}
-                className="me-2"
-              >
-                Open in VR Viewer
-              </Button>
             </div>
 
             <div className="mt-3">
