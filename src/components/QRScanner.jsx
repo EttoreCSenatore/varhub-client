@@ -3,6 +3,7 @@ import axios from 'axios';
 import jsQR from 'jsqr';
 import ARViewer from './ARViewer';
 import { Spinner, Alert, Button, Card } from 'react-bootstrap';
+import api from '../utils/api';
 
 const QRScanner = () => {
   // State for QR scanning and project data
@@ -166,7 +167,7 @@ const QRScanner = () => {
       setError(null);
 
       try {
-        const response = await axios.get(`http://localhost:5001/api/projects/${result}`);
+        const response = await api.get(`/api/projects/${result}`);
         setProject(response.data);
       } catch (err) {
         console.error('Error fetching project:', err);
