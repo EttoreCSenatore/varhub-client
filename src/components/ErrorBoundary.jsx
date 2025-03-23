@@ -1,130 +1,101 @@
 import React, { Component } from 'react';
-import { Alert, Button, Card, Container } from 'react-bootstrap';
+import { Container, Card, Button, Alert } from 'react-bootstrap';
 
 class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
     this.state = { 
-      hasError: false,
+      hasError: false, 
       error: null,
-      errorInfo: null,
-      isNetworkError: false
+      errorInfo: null
     };
   }
 
   static getDerivedStateFromError(error) {
-    // Check if this is a network error
-    const isNetworkError = 
-      error.message && (
-        error.message.includes('net::ERR_FAILED') ||
-        error.message.includes('NetworkError') ||
-        error.message.includes('Failed to fetch') ||
-        error.message.includes('Network request failed')
-      );
-      
-    return { 
-      hasError: true, 
-      error: error,
-      isNetworkError
-    };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    // Log error to console
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
-    this.setState({ errorInfo });
-    
-    // Log error to analytics/monitoring service
-    // This would be a good place to send errors to a service like Sentry
-  }
-
-  handleRetry = () => {
-    this.setState({ hasError: false, error: null, errorInfo: null, isNetworkError: false });
-    window.location.reload();
+    // Update state so the next render will show the fallback UI
+    return { hasError: true, error };
   }
   
-  handleOfflineMode = () => {
-    localStorage.setItem('useMockData', 'true');
-    localStorage.setItem('autoOfflineMode', 'true');
-    window.location.reload();
+  componentDidCatch(error, errorInfo) {
+    this.setState({ errorInfo });
+    
+    // You could also log the error to an error reporting service
+    // Example: logErrorToService(error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
-      // Network error specific fallback UI
-      if (this.state.isNetworkError) {
-        return (
-          <Container className="py-4">
-            <Card className="shadow-sm">
-              <Card.Header className="bg-warning">
-                <h2 className="h4 mb-0">
-                  Network Connection Issue
-                </h2>
-              </Card.Header>
-              <Card.Body>
-                <Alert variant="warning">
-                  <Alert.Heading>Unable to connect to server</Alert.Heading>
-                  <p>
-                    We're having trouble connecting to our servers. This could be due to:
-                  </p>
-                  <ul>
-                    <li>Your internet connection</li>
-                    <li>Our server may be temporarily down</li>
-                    <li>A network firewall blocking the connection</li>
-                  </ul>
-                  <hr />
-                  <div className="d-flex justify-content-between">
-                    <Button variant="outline-secondary" onClick={this.handleRetry}>
-                      Try Again
-                    </Button>
-                    <Button variant="primary" onClick={this.handleOfflineMode}>
-                      Switch to Offline Mode
-                    </Button>
-                  </div>
-                </Alert>
-                <p className="text-muted mt-3 small">
-                  Offline mode will use sample data until connectivity is restored.
-                  When you switch to offline mode, you can still use the application with demo content.
-                </p>
-              </Card.Body>
-            </Card>
-          </Container>
-        );
-      }
+      // Check if it's an API or XHR related error
+      const errorString = String(this.state.error);
+      const isApiError = errorString.includes('API') || 
+                         errorString.includes('fetch') || 
+                         errorString.includes('XMLHttpRequest') ||
+                         errorString.includes('Network Error');
       
-      // Generic error fallback UI
       return (
         <Container className="py-4">
           <Card className="shadow-sm">
-            <Card.Header className="bg-danger text-white">
+            <Card.Header className={isApiError ? "bg-warning" : "bg-danger text-white"}>
               <h2 className="h4 mb-0">
-                Something went wrong
+                {isApiError ? "API Connection Error" : "Application Error"}
               </h2>
             </Card.Header>
             <Card.Body>
-              <Alert variant="danger">
-                <Alert.Heading>Error Details</Alert.Heading>
-                <p>{this.state.error && this.state.error.toString()}</p>
-                <hr />
-                <Button variant="outline-danger" onClick={this.handleRetry}>
-                  Retry
-                </Button>
+              <Alert variant={isApiError ? "warning" : "danger"}>
+                <p><strong>Something went wrong.</strong></p>
+                <p>
+                  {isApiError 
+                    ? "We're having trouble connecting to the server. This might be due to network issues or server maintenance."
+                    : "An unexpected error occurred in the application."}
+                </p>
               </Alert>
-              {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
-                <details className="mt-3 border p-3 rounded bg-light">
-                  <summary>Component Stack</summary>
-                  <pre className="mt-2 text-danger">
+              
+              <h3 className="h5 mt-4">Error Details:</h3>
+              <pre className="bg-light p-3 rounded">
+                {this.state.error?.toString()}
+              </pre>
+              
+              {this.props.showStack && this.state.errorInfo && (
+                <>
+                  <h3 className="h5 mt-4">Component Stack:</h3>
+                  <pre className="bg-light p-3 rounded" style={{ maxHeight: '200px', overflow: 'auto' }}>
                     {this.state.errorInfo.componentStack}
                   </pre>
-                </details>
+                </>
               )}
+              
+              <div className="d-flex gap-2 mt-4">
+                <Button 
+                  variant="primary" 
+                  onClick={() => window.location.reload()}
+                >
+                  Reload Page
+                </Button>
+                <Button 
+                  variant="outline-secondary" 
+                  onClick={() => this.setState({ hasError: false, error: null, errorInfo: null })}
+                >
+                  Try to Recover
+                </Button>
+                {isApiError && (
+                  <Button 
+                    variant="outline-dark" 
+                    onClick={() => {
+                      // Use sample/mock data instead of real API
+                      localStorage.setItem('useMockData', 'true');
+                      window.location.reload();
+                    }}
+                  >
+                    Use Offline Mode
+                  </Button>
+                )}
+              </div>
             </Card.Body>
           </Card>
         </Container>
       );
     }
 
-    // If there's no error, render children normally
     return this.props.children;
   }
 }

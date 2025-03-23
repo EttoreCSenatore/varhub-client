@@ -7,21 +7,19 @@ import { useAuth } from '../context/AuthContext';
  * Redirects to homepage if user is not authenticated
  */
 const PrivateRoute = ({ children }) => {
-  const { currentUser, loading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
 
   // Show nothing while checking authentication status
   if (loading) {
-    return (
-      <div className="d-flex justify-content-center align-items-center min-vh-100">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
+    return <div className="d-flex justify-content-center mt-5">
+      <div className="spinner-border" role="status">
+        <span className="visually-hidden">Loading...</span>
       </div>
-    );
+    </div>;
   }
 
   // Redirect to homepage if not authenticated
-  if (!currentUser) {
+  if (!isAuthenticated()) {
     return <Navigate to="/" />;
   }
 
