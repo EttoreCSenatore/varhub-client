@@ -71,10 +71,6 @@ const NavBar = () => {
                   {currentUser.name}
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
-                  <Dropdown.Item as={Link} to="/profile" onClick={() => setExpanded(false)}>
-                    My Profile
-                  </Dropdown.Item>
-                  <Dropdown.Divider />
                   <Dropdown.Item onClick={handleLogout}>
                     Logout
                   </Dropdown.Item>

@@ -34,7 +34,7 @@ const ProjectsPage = () => {
 
   if (loading) {
     return (
-      <Container className="mt-5 text-center">
+      <Container className="py-4 text-center">
         <Spinner animation="border" role="status" className="mb-3" />
         <p>Loading projects...</p>
       </Container>
@@ -43,7 +43,7 @@ const ProjectsPage = () => {
 
   if (error) {
     return (
-      <Container className="mt-5">
+      <Container className="py-4">
         <Alert variant="danger">
           {error}
         </Alert>
@@ -52,20 +52,19 @@ const ProjectsPage = () => {
   }
 
   return (
-    <Container className="py-5">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1>My Projects</h1>
-        <Button variant="primary">Create New Project</Button>
+    <Container className="py-3 py-md-5">
+      <div className="mb-4">
+        <h1 className="mb-0">My Projects</h1>
       </div>
 
       {projects.length === 0 ? (
         <Alert variant="info">
-          You don't have any projects yet. Create your first project to get started!
+          You don't have any projects yet.
         </Alert>
       ) : (
-        <Row>
+        <Row xs={1} sm={2} lg={3}>
           {projects.map((project) => (
-            <Col md={4} className="mb-4" key={project.id}>
+            <Col className="mb-4" key={project.id}>
               <Card className="h-100 shadow-sm">
                 <Card.Img 
                   variant="top" 

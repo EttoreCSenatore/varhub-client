@@ -27,7 +27,7 @@ function App() {
       <NavBar />  
       
       {/* Main content with padding for fixed navbar */}
-      <main className="flex-grow-1 pt-5 mt-4">
+      <main className="flex-grow-1 pt-5 mt-4 px-2">
         <Routes>  
           <Route path="/" element={<HomePage />} />  
           <Route path="/login" element={<LoginPage />} />  

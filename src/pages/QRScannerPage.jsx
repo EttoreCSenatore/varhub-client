@@ -4,9 +4,9 @@ import QRScanner from '../components/QRScanner';
 
 const QRScannerPage = () => {
   return (
-    <Container className="py-4">
+    <Container className="py-3 py-md-4">
       <Row className="justify-content-center">
-        <Col lg={10} md={12}>
+        <Col xs={12} lg={10}>
           <Card className="shadow-sm mb-4">
             <Card.Header className="bg-primary text-white">
               <h2 className="h4 mb-0">QR Code Scanner</h2>
@@ -20,7 +20,7 @@ const QRScannerPage = () => {
             <Card.Header>
               <h3 className="h5 mb-0">How to use the QR Scanner</h3>
             </Card.Header>
-            <Card.Body>
+            <Card.Body className="p-3 p-md-4">
               <ol className="mb-0">
                 <li className="mb-2">Click the <strong>Start Camera</strong> button to activate your device's camera</li>
                 <li className="mb-2">Point your camera at a project QR code</li>
