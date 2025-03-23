@@ -4,6 +4,31 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import VRPlayer from '../components/VRPlayer';
 import api from '../utils/api';
 
+// Sample fallback projects in case the API fails
+const SAMPLE_PROJECTS = [
+  {
+    id: 'sample-1',
+    name: 'Solar System VR Tour',
+    description: 'Explore the solar system in immersive 360° virtual reality.',
+    thumbnail_url: 'https://images.unsplash.com/photo-1614642264762-d0a3b8bf3700?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+    vr_video_url: 'https://cdn.aframe.io/360-video-boilerplate/video/city.mp4',
+  },
+  {
+    id: 'sample-2',
+    name: 'Underwater Exploration',
+    description: 'Dive into the depths of the ocean with this stunning VR experience.',
+    thumbnail_url: 'https://images.unsplash.com/photo-1682686580391-8ace8709092a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+    vr_video_url: 'https://cdn.aframe.io/360-video-sample/video/raccoon.mp4',
+  },
+  {
+    id: 'sample-3',
+    name: 'Mount Everest Expedition',
+    description: 'Experience climbing Mount Everest in VR without the physical risks.',
+    thumbnail_url: 'https://images.unsplash.com/photo-1575936123452-b67c3203c357?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+    vr_video_url: 'https://cdn.aframe.io/360-video-boilerplate/video/city.mp4',
+  }
+];
+
 const VRViewerPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -16,26 +41,34 @@ const VRViewerPage = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [usingSampleData, setUsingSampleData] = useState(false);
   
   // Sample VR video URLs for testing (fallback)
   const sampleVideos = [
     { name: 'Sample VR Video 1', url: 'https://cdn.aframe.io/360-video-boilerplate/video/city.mp4' },
-    { name: 'Sample VR Video 2', url: 'https://cdn.aframe.io/360-video-sample/video/raccoon.mp4' },
+    { name: 'Sample VR Video 2', url: 'https://storage.googleapis.com/cardinal-choir-254220.appspot.com/homepage/360-video-forest.mp4' },
   ];
 
   // Fetch projects with VR videos from API
   useEffect(() => {
     const fetchProjects = async () => {
       try {
+        console.log('Fetching VR projects from API...');
         setLoading(true);
         const response = await api.get('/api/projects');
+        console.log('VR projects API response:', response);
         // Filter projects that have a vr_video_url
         const projectsWithVRVideos = response.data.filter(project => project.vr_video_url);
         setProjects(projectsWithVRVideos);
+        setUsingSampleData(false);
         setError(null);
       } catch (err) {
-        console.error('Error fetching projects:', err);
-        setError('Failed to load projects. Please try again later.');
+        console.error('Error fetching VR projects:', err);
+        // Use sample projects as fallback
+        console.log('Using sample VR projects as fallback');
+        setProjects(SAMPLE_PROJECTS);
+        setUsingSampleData(true);
+        setError('Could not connect to the server. Showing sample VR projects instead.');
       } finally {
         setLoading(false);
       }
@@ -90,7 +123,13 @@ const VRViewerPage = () => {
     <Container className="py-3 py-md-4">
       <h1 className="mb-3 mb-md-4">VR Video Viewer</h1>
       
-      {error && (
+      {error && usingSampleData && (
+        <Alert variant="info" className="mb-4">
+          {error}
+        </Alert>
+      )}
+      
+      {error && !usingSampleData && (
         <Alert variant="danger" className="mb-4">
           {error}
         </Alert>

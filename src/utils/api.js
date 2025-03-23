@@ -1,8 +1,17 @@
 import axios from 'axios';
 
-// Get API URL from environment variables, or use local development URL as fallback
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// Get API URL based on environment
+const getApiUrl = () => {
+  // Check if we're in the Vercel production environment
+  if (window.location.hostname === 'varhub-client.vercel.app') {
+    return 'https://varhub-server.vercel.app'; // Production API URL
+  }
+  
+  // Otherwise use environment variable or fallback to localhost
+  return import.meta.env.VITE_API_URL || 'http://localhost:5000';
+};
 
+const API_URL = getApiUrl();
 console.log('API URL:', API_URL); // For debugging, can be removed later
 
 // Create axios instance
