@@ -34,7 +34,7 @@ import NavBar from '../components/NavBar';
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const { currentUser, login, register } = useAuth();
+  const { user, login, register } = useAuth();
   
   // Login/Register state
   const [activeTab, setActiveTab] = useState('login');
@@ -53,10 +53,10 @@ const HomePage = () => {
   
   // Redirect to projects page if user is already logged in
   useEffect(() => {
-    if (currentUser) {
+    if (user) {
       navigate('/projects');
     }
-  }, [currentUser, navigate]);
+  }, [user, navigate]);
 
   const handleLogin = async (e) => {  
     e.preventDefault();  

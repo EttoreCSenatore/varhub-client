@@ -93,10 +93,10 @@ const VRPlayer = ({ videoUrl }) => {
             setLoadError(errorMessage);
             setIsLoading(false);
             
-            // If this is a net::ERR_FAILED, recommend switching to offline mode
+            // If this is a net::ERR_FAILED, provide more helpful error message
             if (videoElement.error && videoElement.error.message && 
                 videoElement.error.message.includes('net::ERR_FAILED')) {
-              setLoadError('Failed to load the video resource. This may be due to network issues. Try using offline mode with sample videos.');
+              setLoadError('Failed to load the video resource. This may be due to network issues or the resource may be unavailable.');
             }
           }
         });
@@ -140,20 +140,6 @@ const VRPlayer = ({ videoUrl }) => {
           <Alert variant="danger" className="mx-3">
             <Alert.Heading>Video Error</Alert.Heading>
             <p>{loadError}</p>
-            
-            {loadError.includes('network issues') && (
-              <div className="mt-3">
-                <button 
-                  className="btn btn-outline-secondary btn-sm"
-                  onClick={() => {
-                    localStorage.setItem('useMockData', 'true');
-                    window.location.reload();
-                  }}
-                >
-                  Switch to Offline Mode
-                </button>
-              </div>
-            )}
           </Alert>
         </div>
       )}
