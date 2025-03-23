@@ -1,5 +1,5 @@
 import React, { useState } from 'react';  
-import axios from 'axios';  
+import api from '../utils/api';  
 import { useNavigate, Link } from 'react-router-dom';  
 import { 
   Container, 
@@ -56,8 +56,8 @@ const LoginPage = () => {
     }
 
     try {  
-      const response = await axios.post(  
-        'http://localhost:5000/api/auth/login',  
+      const response = await api.post(  
+        '/api/auth/login',  
         { email, password }  
       );  
 
@@ -118,8 +118,8 @@ const LoginPage = () => {
     setError('');
     
     try {
-      const response = await axios.post(
-        'http://localhost:5000/api/auth/register',
+      const response = await api.post(
+        '/api/auth/register',
         {
           name: registerName,
           email: registerEmail,
