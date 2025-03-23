@@ -45,23 +45,25 @@ const VRViewerPage = () => {
               <Form.Group className="mb-3">
                 <Form.Label>Or select a sample video</Form.Label>
                 <Form.Select onChange={handleSampleSelection}>
-                  <option value="">Select a sample video</option>
+                  <option value="">Choose a sample video</option>
                   {sampleVideos.map((video, index) => (
-                    <option key={index} value={video.url}>
-                      {video.name}
-                    </option>
+                    <option key={index} value={video.url}>{video.name}</option>
                   ))}
                 </Form.Select>
               </Form.Group>
               
-              <Button variant="primary" type="submit" disabled={!videoUrl}>
-                Play VR Video
+              <Button 
+                variant="primary" 
+                type="submit" 
+                disabled={!videoUrl}
+              >
+                Play Video
               </Button>
             </Form>
           </Card.Body>
         </Card>
       ) : (
-        <>
+        <div>
           <Button 
             variant="secondary" 
             className="mb-3"
@@ -69,15 +71,10 @@ const VRViewerPage = () => {
           >
             Back to Selection
           </Button>
-          
-          <Card>
-            <Card.Body>
-              <div style={{ height: '500px' }}>
-                <VRPlayer videoUrl={videoUrl} />
-              </div>
-            </Card.Body>
-          </Card>
-        </>
+          <div className="vr-player-container" style={{ height: '600px', width: '100%' }}>
+            <VRPlayer videoUrl={videoUrl} />
+          </div>
+        </div>
       )}
     </Container>
   );
