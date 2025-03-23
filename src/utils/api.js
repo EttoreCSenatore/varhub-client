@@ -1,10 +1,70 @@
 import axios from 'axios';
 
+// Sample mock data for offline mode
+const MOCK_DATA = {
+  '/api/projects': [
+    {
+      id: 'mock-1',
+      name: 'Solar System VR Tour',
+      description: 'Explore the solar system in immersive 360° virtual reality.',
+      thumbnail_url: 'https://images.unsplash.com/photo-1614642264762-d0a3b8bf3700?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+      vr_video_url: 'https://cdn.aframe.io/360-video-boilerplate/video/city.mp4',
+      model_url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF/Duck.gltf',
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 'mock-2',
+      name: 'Underwater Exploration',
+      description: 'Dive into the depths of the ocean with this stunning VR experience.',
+      thumbnail_url: 'https://images.unsplash.com/photo-1682686580391-8ace8709092a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+      vr_video_url: 'https://cdn.aframe.io/360-video-sample/video/raccoon.mp4',
+      model_url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Box/glTF/Box.gltf',
+      created_at: new Date().toISOString()
+    }
+  ],
+  // Add other endpoints as needed
+};
+
+// Check if we should use mock data (offline mode)
+const useOfflineMode = () => {
+  return localStorage.getItem('useMockData') === 'true';
+};
+
+// Check if we should use an alternative API endpoint
+const shouldUseAlternativeApi = () => {
+  return localStorage.getItem('useAlternativeApi') === 'true';
+};
+
 // Get API URL based on environment
 const getApiUrl = () => {
+  // Check if we're in offline mode
+  if (useOfflineMode()) {
+    console.log('Using offline mode - API calls will use mock data');
+    return 'offline';
+  }
+  
+  // Check if we should use an alternative API
+  if (shouldUseAlternativeApi()) {
+    console.log('Using alternative API endpoint');
+    return 'https://varhub-server-backup.vercel.app';
+  }
+  
+  // Check if we're in development mode
+  const isDevelopment = import.meta.env.MODE === 'development';
+  
   // Check if we're in the Vercel production environment
-  if (window.location.hostname === 'varhub-client.vercel.app') {
-    return 'https://varhub-server.vercel.app'; // Production API URL
+  const hostname = window.location.hostname;
+  const isVercel = hostname === 'varhub-client.vercel.app' || hostname.includes('vercel.app');
+  
+  // In development, use the proxy defined in vite.config.js
+  if (isDevelopment) {
+    console.log('Using development proxy for API requests');
+    return ''; // Empty string will use the proxy
+  }
+  
+  // In production on Vercel
+  if (isVercel) {
+    return 'https://varhub-server.vercel.app';
   }
   
   // Otherwise use environment variable or fallback to localhost
@@ -14,12 +74,121 @@ const getApiUrl = () => {
 const API_URL = getApiUrl();
 console.log('API URL:', API_URL); // For debugging, can be removed later
 
-// Create axios instance
+// Create a custom adapter for offline mode
+const offlineModeAdapter = (config) => {
+  return new Promise((resolve) => {
+    console.log('Using offline mode adapter for:', config.url);
+    
+    // Small delay to simulate network
+    setTimeout(() => {
+      // Extract the endpoint path
+      const url = config.url || '';
+      
+      // Check if we have mock data for this endpoint
+      if (MOCK_DATA[url]) {
+        resolve({
+          data: MOCK_DATA[url],
+          status: 200,
+          statusText: 'OK (Mocked)',
+          headers: {},
+          config,
+        });
+      } else {
+        // If no specific mock data, return a generic success
+        resolve({
+          data: { success: true, message: 'Mock data response' },
+          status: 200,
+          statusText: 'OK (Mocked)',
+          headers: {},
+          config,
+        });
+      }
+    }, 500); // 500ms delay
+  });
+};
+
+// Create axios instance with improved CORS handling
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  // Disable withCredentials as it might be causing CORS issues
+  withCredentials: false,
+  // Reduce timeout to fail faster for better user experience
+  timeout: 8000,
+});
+
+// Check if we're in offline mode and use the mock adapter
+if (API_URL === 'offline') {
+  // Override the adapter to use our offline mock
+  api.defaults.adapter = offlineModeAdapter;
+}
+
+// Direct access to the underlying XMLHttpRequest
+api.interceptors.request.use(config => {
+  // Configure the XMLHttpRequest for better error handling
+  config.adapter = config => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      
+      // Track if the request completed
+      let requestCompleted = false;
+      
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+          requestCompleted = true;
+          
+          if (xhr.status >= 200 && xhr.status < 300) {
+            const response = {
+              data: JSON.parse(xhr.responseText),
+              status: xhr.status,
+              statusText: xhr.statusText,
+              headers: xhr.getAllResponseHeaders(),
+              config: config,
+              request: xhr
+            };
+            resolve(response);
+          } else {
+            reject(new Error(`Request failed with status code ${xhr.status}`));
+          }
+        }
+      };
+      
+      xhr.onerror = function() {
+        console.error('XHR Error:', xhr);
+        reject(new Error('Network Error: No response received from server'));
+      };
+      
+      xhr.ontimeout = function() {
+        reject(new Error('Request timeout: Server did not respond in time'));
+      };
+      
+      xhr.open(config.method.toUpperCase(), config.baseURL + config.url, true);
+      
+      // Set headers
+      if (config.headers) {
+        Object.keys(config.headers).forEach(key => {
+          xhr.setRequestHeader(key, config.headers[key]);
+        });
+      }
+      
+      // Set timeout
+      xhr.timeout = config.timeout;
+      
+      // Send the request
+      xhr.send(config.data ? JSON.stringify(config.data) : null);
+      
+      // Check if request is completed after 5 seconds
+      setTimeout(() => {
+        if (!requestCompleted) {
+          console.warn('Request has not completed after 5 seconds');
+        }
+      }, 5000);
+    });
+  };
+  
+  return config;
 });
 
 // Request interceptor: Add Authorization header
@@ -29,9 +198,71 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Log the request in development mode
+    if (import.meta.env.MODE === 'development') {
+      console.log(`API Request: ${config.method.toUpperCase()} ${config.url}`, config);
+    }
+    
     return config;
   },
   (error) => Promise.reject(error)
+);
+
+// Response interceptor: Handle common errors
+api.interceptors.response.use(
+  (response) => {
+    // Log the response in development mode
+    if (import.meta.env.MODE === 'development') {
+      console.log(`API Response: ${response.status} ${response.config.url}`, response);
+    }
+    return response;
+  },
+  (error) => {
+    // Handle generic failed to load resource error
+    if (error.message && error.message.includes('net::ERR_FAILED')) {
+      console.error('Resource failed to load (net::ERR_FAILED):', error);
+      
+      // If this is a common API endpoint, switch to offline mode automatically
+      const url = error.config?.url || '';
+      if (url.includes('/api/projects') || url.includes('/api/auth')) {
+        console.log('Critical API endpoint failed, switching to offline mode automatically');
+        localStorage.setItem('useMockData', 'true');
+        
+        // Add a flag to show a message to the user about automatic offline mode
+        localStorage.setItem('autoOfflineMode', 'true');
+        
+        // Instead of reloading immediately, let the caller handle the error
+        error.useOfflineMode = true;
+      }
+    }
+    
+    // Handle CORS errors specifically
+    if (error.message && error.message.includes('Network Error')) {
+      console.error('Network or CORS error:', error);
+      
+      // Log more details about the request
+      const requestInfo = {
+        url: error.config?.url,
+        method: error.config?.method,
+        baseURL: error.config?.baseURL,
+        headers: error.config?.headers,
+      };
+      console.log('Request that caused the error:', requestInfo);
+    }
+    
+    // Handle timeout errors
+    if (error.message && error.message.includes('timeout')) {
+      console.error('Request timeout error:', error);
+    }
+    
+    // Handle no response errors
+    if (error.message && error.message.includes('No response received')) {
+      console.error('No response received error:', error);
+    }
+    
+    return Promise.reject(error);
+  }
 );
 
 export default api;

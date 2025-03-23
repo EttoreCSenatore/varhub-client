@@ -1,135 +1,188 @@
 import React, { useEffect, useRef, useState } from 'react';
 import 'aframe';
-import { Spinner } from 'react-bootstrap';
+import { Spinner, Alert } from 'react-bootstrap';
 
 const VRPlayer = ({ videoUrl }) => {
   const videoRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [loadError, setLoadError] = useState(null);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   
   useEffect(() => {
-    // Reset loading state when video URL changes
-    setIsLoading(true);
-    setIsPlaying(false);
+    if (!videoUrl) {
+      setLoadError('No video URL provided.');
+      setIsLoading(false);
+      return;
+    }
     
-    // Handle play/pause when aframe scene is loaded
-    const scene = document.querySelector('a-scene');
-    if (scene) {
-      if (scene.hasLoaded) {
-        handleSceneLoaded();
-      } else {
-        scene.addEventListener('loaded', handleSceneLoaded);
-      }
+    let mounted = true;
+    const videoElement = videoRef.current;
+    
+    if (videoElement) {
+      // Reset state when changing videos
+      setIsLoading(true);
+      setLoadError(null);
+      setLoadingProgress(0);
+      
+      const checkResourceAvailability = async () => {
+        try {
+          // Check if the video resource is available by making a HEAD request
+          const response = await fetch(videoUrl, { method: 'HEAD' });
+          if (!response.ok) {
+            throw new Error(`Video resource unavailable: ${response.status} ${response.statusText}`);
+          }
+        } catch (error) {
+          console.error('Error checking video availability:', error);
+          if (mounted) {
+            setLoadError(`Failed to load video. Please check the URL and try again. Error: ${error.message}`);
+            setIsLoading(false);
+          }
+          return false;
+        }
+        return true;
+      };
+      
+      const setupVideoListeners = () => {
+        // Simulate loading progress
+        let progressInterval = setInterval(() => {
+          if (mounted) {
+            setLoadingProgress(prev => {
+              const newProgress = prev + (Math.random() * 5);
+              return newProgress > 90 ? 90 : newProgress;
+            });
+          }
+        }, 500);
+        
+        // Video loaded successfully
+        videoElement.addEventListener('canplay', () => {
+          if (mounted) {
+            clearInterval(progressInterval);
+            setLoadingProgress(100);
+            setIsLoading(false);
+          }
+        });
+        
+        // Error loading video
+        videoElement.addEventListener('error', (e) => {
+          if (mounted) {
+            clearInterval(progressInterval);
+            console.error('Video load error:', e);
+            
+            let errorMessage = 'Failed to load video.';
+            
+            // Try to get more specific error details from the MediaError
+            if (videoElement.error) {
+              switch (videoElement.error.code) {
+                case 1: // MEDIA_ERR_ABORTED
+                  errorMessage = 'Video loading was aborted.';
+                  break;
+                case 2: // MEDIA_ERR_NETWORK
+                  errorMessage = 'Network error occurred while loading the video.';
+                  break;
+                case 3: // MEDIA_ERR_DECODE
+                  errorMessage = 'Video decoding failed. The file may be corrupted.';
+                  break;
+                case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
+                  errorMessage = 'Video format is not supported by your browser.';
+                  break;
+                default:
+                  errorMessage = `Error loading video: ${videoElement.error.message || 'Unknown error'}`;
+              }
+            }
+            
+            setLoadError(errorMessage);
+            setIsLoading(false);
+            
+            // If this is a net::ERR_FAILED, recommend switching to offline mode
+            if (videoElement.error && videoElement.error.message && 
+                videoElement.error.message.includes('net::ERR_FAILED')) {
+              setLoadError('Failed to load the video resource. This may be due to network issues. Try using offline mode with sample videos.');
+            }
+          }
+        });
+        
+        return progressInterval;
+      };
+      
+      // First check if resource is available, then setup video
+      checkResourceAvailability().then(isAvailable => {
+        if (isAvailable && mounted) {
+          const progressInterval = setupVideoListeners();
+          return () => {
+            clearInterval(progressInterval);
+            mounted = false;
+          };
+        }
+      });
     }
     
     return () => {
-      const scene = document.querySelector('a-scene');
-      if (scene) {
-        scene.removeEventListener('loaded', handleSceneLoaded);
-      }
+      mounted = false;
     };
   }, [videoUrl]);
   
-  const handleSceneLoaded = () => {
-    // Handle scene loaded
-    if (videoRef.current) {
-      // Add click event to toggle play/pause
-      const videosphere = document.querySelector('a-videosphere');
-      if (videosphere) {
-        videosphere.addEventListener('click', togglePlayPause);
-      }
-      
-      // Track video loading
-      videoRef.current.addEventListener('loadeddata', () => {
-        setIsLoading(false);
-      });
-      
-      // Track video play state
-      videoRef.current.addEventListener('play', () => setIsPlaying(true));
-      videoRef.current.addEventListener('pause', () => setIsPlaying(false));
-      
-      // Attempt autoplay
-      try {
-        videoRef.current.play().catch((e) => {
-          console.log('Autoplay prevented by browser:', e);
-          setIsLoading(false);
-        });
-      } catch (error) {
-        console.error('Error playing video:', error);
-        setIsLoading(false);
-      }
-    }
-  };
-  
-  const togglePlayPause = () => {
-    if (videoRef.current) {
-      if (videoRef.current.paused) {
-        videoRef.current.play();
-      } else {
-        videoRef.current.pause();
-      }
-    }
-  };
-
   return (
-    <div className="vr-player-wrapper" style={{ position: 'relative', width: '100%', height: '100%' }}>
+    <div className="vr-player" style={{ position: 'relative', width: '100%', height: '100%' }}>
       {isLoading && (
-        <div 
-          style={{ 
-            position: 'absolute', 
-            top: 0, 
-            left: 0, 
-            width: '100%', 
-            height: '100%', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            background: 'rgba(0,0,0,0.7)',
-            zIndex: 10
-          }}
-        >
-          <div className="text-center text-white">
-            <Spinner animation="border" role="status" />
-            <p className="mt-2">Loading VR experience...</p>
+        <div className="loading-overlay d-flex flex-column justify-content-center align-items-center" 
+             style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 10 }}>
+          <Spinner animation="border" variant="light" className="mb-3" />
+          <p className="text-white mb-2">Loading VR Video...</p>
+          <div className="progress w-75" style={{ height: '10px' }}>
+            <div className="progress-bar" role="progressbar" style={{ width: `${loadingProgress}%` }} />
           </div>
         </div>
       )}
-    
-      <a-scene embedded vr-mode-ui="enabled: true">
+      
+      {loadError && (
+        <div className="error-overlay d-flex justify-content-center align-items-center" 
+             style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 10 }}>
+          <Alert variant="danger" className="mx-3">
+            <Alert.Heading>Video Error</Alert.Heading>
+            <p>{loadError}</p>
+            
+            {loadError.includes('network issues') && (
+              <div className="mt-3">
+                <button 
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() => {
+                    localStorage.setItem('useMockData', 'true');
+                    window.location.reload();
+                  }}
+                >
+                  Switch to Offline Mode
+                </button>
+              </div>
+            )}
+          </Alert>
+        </div>
+      )}
+      
+      <a-scene embedded loading-screen="enabled: false" style={{ width: '100%', height: '100%' }}>
         <a-assets>
           <video 
-            id="vrVideo" 
             ref={videoRef}
+            id="vr-video" 
             src={videoUrl} 
-            crossOrigin="anonymous"
-            loop
-            playsInline
             preload="auto"
+            crossOrigin="anonymous"
+            playsInline
+            webkit-playsinline="true"
+            loop
           ></video>
         </a-assets>
         
-        <a-videosphere src="#vrVideo" rotation="0 180 0"></a-videosphere>
+        <a-videosphere 
+          src="#vr-video" 
+          rotation="0 -90 0"
+          play-on-click
+        ></a-videosphere>
         
-        <a-camera>
-          <a-cursor color="white"></a-cursor>
+        <a-camera position="0 1.6 0" look-controls="pointerLockEnabled: true">
+          <a-cursor color="#FFFFFF"></a-cursor>
         </a-camera>
         
-        <a-entity 
-          position="0 -1.6 -2" 
-          text={`value: Click to ${isPlaying ? 'pause' : 'play'}; align: center; width: 2; color: white`}
-        ></a-entity>
-        
-        {/* Instructions */}
-        <a-entity 
-          position="0 1.7 -2" 
-          text="value: Drag to look around in 360°; align: center; width: 2; color: white">
-        </a-entity>
-        
-        {/* VR Mode Prompt */}
-        <a-entity 
-          position="0 1.5 -2" 
-          text="value: Enter VR for immersive experience; align: center; width: 2; color: white">
-        </a-entity>
+        <a-entity position="0 1.6 -3" text={`value: Click and drag to look around\nTap on video to play; width: 3; color: white; align: center;`}></a-entity>
       </a-scene>
     </div>
   );
