@@ -40,3 +40,24 @@
 .read-the-docs {
   color: #888;
 }
+
+.card-video-container {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+  border-top-left-radius: calc(0.375rem - 1px);
+  border-top-right-radius: calc(0.375rem - 1px);
+}
+
+.card-video-container .react-player {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* Make sure videos are responsive on mobile */
+@media (max-width: 576px) {
+  .card-video-container {
+    height: 200px;
+  }
+}
