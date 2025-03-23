@@ -275,6 +275,10 @@ const QRScanner = () => {
       const isVideoUrl = checkIfVideoUrl(url);
       
       if (isVideoUrl) {
+        // Special handling for S3 URLs which might need CORS handling
+        if (url.includes('s3.') && url.endsWith('.mp4')) {
+          console.log("S3 video detected:", url);
+        }
         setVideoUrl(url);
       } else {
         // If not a video, offer to open it externally
@@ -470,14 +474,6 @@ const QRScanner = () => {
             <h4 className="mb-0">Video Player</h4>
             <div>
               <Button 
-                variant={isVrMode ? "primary" : "outline-primary"} 
-                size="sm" 
-                onClick={toggleVrMode}
-                className="me-2"
-              >
-                {isVrMode ? "Exit VR Mode" : "Enter VR Mode"}
-              </Button>
-              <Button 
                 variant="outline-secondary" 
                 size="sm" 
                 onClick={resetScanner}
@@ -487,55 +483,28 @@ const QRScanner = () => {
             </div>
           </Card.Header>
           <Card.Body>
-            {isVrMode ? (
-              <div className="vr-player-container position-relative" style={{ height: '70vh' }}>
-                {/* VR Mode Player */}
-                <div className="vr-scene" style={{ 
-                  position: 'absolute', 
-                  width: '100%', 
-                  height: '100%',
-                  backgroundColor: '#000',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}>
-                  {/* Using A-Frame for VR View */}
-                  <div style={{ width: '100%', height: '100%' }}>
-                    <a-scene embedded vr-mode-ui="enabled: true">
-                      <a-assets>
-                        <video 
-                          id="vrVideo" 
-                          src={videoUrl} 
-                          autoPlay 
-                          loop 
-                          crossOrigin="anonymous"
-                        ></video>
-                      </a-assets>
-                      <a-videosphere src="#vrVideo" rotation="0 -90 0"></a-videosphere>
-                    </a-scene>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="regular-player-container">
-                {/* Regular Video Player */}
-                <ReactPlayer
-                  ref={vrPlayerRef}
-                  url={videoUrl}
-                  controls={true}
-                  width="100%"
-                  height="60vh"
-                  playing={true}
-                  config={{
-                    file: {
-                      attributes: {
-                        crossOrigin: "anonymous"
-                      }
-                    }
-                  }}
-                />
-              </div>
-            )}
+            <div className="video-container mb-3">
+              {/* Standard HTML5 Video Player for better compatibility with MP4 files */}
+              <video 
+                src={videoUrl}
+                className="w-100"
+                style={{ height: '60vh' }}
+                controls
+                autoPlay
+                crossOrigin="anonymous"
+                playsInline
+              />
+            </div>
+
+            <div className="vr-controls d-flex justify-content-center mb-3">
+              <Button 
+                variant="primary" 
+                onClick={() => window.open(`/vr-viewer?video=${encodeURIComponent(videoUrl)}`, '_blank')}
+                className="me-2"
+              >
+                Open in VR Viewer
+              </Button>
+            </div>
 
             <div className="mt-3">
               <Alert variant="info">
