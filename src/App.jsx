@@ -1,16 +1,14 @@
 import React from 'react';  
 import { Routes, Route } from 'react-router-dom';  
 import HomePage from './pages/HomePage.jsx';  
+import LoginPage from './pages/LoginPage.jsx';  
 import ProjectsPage from './pages/ProjectsPage.jsx'; 
 import NavBar from './components/NavBar.jsx';
 import QRScannerPage from './pages/QRScannerPage';
 import VRViewerPage from './pages/VRViewerPage';
-import ARViewerPage from './pages/ARViewerPage';
 import Footer from './components/Footer';
 import { useAuth } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
-import NotFoundPage from './pages/NotFoundPage';
-import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {  
   const { loading } = useAuth();
@@ -32,6 +30,7 @@ function App() {
       <main className="flex-grow-1 pt-5 mt-4 px-2">
         <Routes>  
           <Route path="/" element={<HomePage />} />  
+          <Route path="/login" element={<LoginPage />} />  
           <Route 
             path="/projects" 
             element={
@@ -49,24 +48,13 @@ function App() {
             } 
           />
           <Route 
-            path="/vr-viewer/:projectId?" 
+            path="/vr-viewer" 
             element={
               <PrivateRoute>
-                <ErrorBoundary>
-                  <VRViewerPage />
-                </ErrorBoundary>
+                <VRViewerPage />
               </PrivateRoute>
             } 
           />
-          <Route 
-            path="/ar-viewer/:projectId?" 
-            element={
-              <PrivateRoute>
-                <ARViewerPage />
-              </PrivateRoute>
-            } 
-          />
-          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
       
