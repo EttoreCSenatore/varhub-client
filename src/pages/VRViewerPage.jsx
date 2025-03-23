@@ -1,20 +1,17 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Container, Alert, Spinner, Button } from 'react-bootstrap';
-import 'aframe';
 import ReactPlayer from 'react-player';
+import 'aframe';
 
 const VRViewerPage = () => {
   const [videoUrl, setVideoUrl] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [videoReady, setVideoReady] = useState(false);
-  const [useDirectPlayer, setUseDirectPlayer] = useState(false);
+  const [useSimplePlayer, setUseSimplePlayer] = useState(false);
   const location = useLocation();
-  const videoRef = useRef(null);
-  const playerRef = useRef(null);
-  const [loadingTimeout, setLoadingTimeout] = useState(false);
-
+  const vrSceneRef = useRef(null);
+  
   useEffect(() => {
     // Parse URL parameters to get the video URL
     const params = new URLSearchParams(location.search);
@@ -23,16 +20,17 @@ const VRViewerPage = () => {
     if (encodedVideoUrl) {
       try {
         const decodedUrl = decodeURIComponent(encodedVideoUrl);
-        console.log("Loading VR video:", decodedUrl);
+        console.log("Loading video:", decodedUrl);
         setVideoUrl(decodedUrl);
         
-        // Set a timeout to handle stuck loading states
+        // Set a timeout to automatically switch to simple player if VR mode takes too long
         const timer = setTimeout(() => {
           if (loading) {
-            console.log("Loading timeout reached - video might be having issues");
-            setLoadingTimeout(true);
+            console.log("Loading timeout - switching to simple player");
+            setUseSimplePlayer(true);
+            setLoading(false);
           }
-        }, 8000);
+        }, 5000);
         
         return () => clearTimeout(timer);
       } catch (err) {
@@ -44,131 +42,42 @@ const VRViewerPage = () => {
       setError("No video URL provided");
       setLoading(false);
     }
-  }, [location, loading]);
-
-  // Handle video events
-  useEffect(() => {
-    const handleVideoEvents = () => {
-      const videoElement = document.getElementById('vrVideo');
-      if (videoElement) {
-        videoElement.addEventListener('loadedmetadata', () => {
-          console.log("Video metadata loaded");
-        });
-        
-        videoElement.addEventListener('canplay', () => {
-          console.log("Video can play now");
-          setVideoReady(true);
-          setLoading(false);
-        });
-        
-        videoElement.addEventListener('error', (e) => {
-          console.error("Video error:", e);
-          setUseDirectPlayer(true);
-          setLoading(false);
-        });
-
-        // Force play on iOS
-        videoElement.addEventListener('canplaythrough', () => {
-          videoElement.play().catch(e => {
-            console.warn("Auto-play prevented:", e);
-          });
-        });
-        
-        // Check if video source was really loaded
-        videoElement.addEventListener('loadeddata', () => {
-          console.log("Video data loaded successfully");
-          setLoading(false);
-          setVideoReady(true);
-        });
-      }
-    };
-    
-    // Set a timeout to allow the A-Frame scene to initialize
-    if (videoUrl) {
-      const timer = setTimeout(() => {
-        handleVideoEvents();
-      }, 500);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [videoUrl]);
+  }, [location.search, loading]);
 
   // Go back to previous page
   const goBack = () => {
     window.history.back();
   };
 
-  // Function to handle fullscreen toggle
-  const enterFullscreen = () => {
-    if (useDirectPlayer) {
-      // If using direct player, use its fullscreen capability
-      const videoElement = document.querySelector('video');
-      if (videoElement && videoElement.requestFullscreen) {
-        videoElement.requestFullscreen();
-      }
-      return;
-    }
-    
-    // For iOS, use a different approach
-    if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-      // On iOS, trigger playback which will show fullscreen controls
-      const videoElement = document.getElementById('vrVideo');
-      if (videoElement) {
-        videoElement.play().catch(err => console.warn("Play failed:", err));
-      }
-      return;
-    }
-    
-    // For other browsers
-    const scene = document.querySelector('a-scene');
-    if (scene) {
-      if (scene.requestFullscreen) {
-        scene.requestFullscreen();
-      } else if (scene.mozRequestFullScreen) { /* Firefox */
-        scene.mozRequestFullScreen();
-      } else if (scene.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
-        scene.webkitRequestFullscreen();
-      } else if (scene.msRequestFullscreen) { /* IE/Edge */
-        scene.msRequestFullscreen();
-      }
-    }
-  };
-
-  // Check if running on mobile device
-  const isMobile = () => {
-    return /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  };
-
-  // Enter VR mode directly
-  const enterVR = () => {
-    const scene = document.querySelector('a-scene');
-    if (scene && scene.enterVR) {
-      scene.enterVR();
-    }
-  };
-
-  // Switch to direct player mode
-  const switchToDirectPlayer = () => {
-    setUseDirectPlayer(true);
+  // Switch to simple player view
+  const switchToSimplePlayer = () => {
+    setUseSimplePlayer(true);
     setLoading(false);
+  };
+  
+  // Once the Aframe scene has loaded
+  const handleSceneLoaded = () => {
+    setLoading(false);
+    console.log("VR Scene loaded");
+    
+    // Force play video after scene is loaded
+    const videoEl = document.getElementById('vr-video');
+    if (videoEl) {
+      videoEl.play().catch(err => {
+        console.warn("Could not autoplay video:", err);
+      });
+    }
   };
 
   return (
-    <Container fluid className="p-0 vh-100 position-relative">
-      {loading && !loadingTimeout ? (
+    <Container fluid className="p-0 m-0 vh-100 position-relative">
+      {loading ? (
         <div className="d-flex flex-column justify-content-center align-items-center vh-100">
           <Spinner animation="border" variant="primary" />
-          <span className="ms-2 mb-3">Loading VR video...</span>
-          
-          {loadingTimeout && (
-            <Button 
-              variant="warning" 
-              onClick={switchToDirectPlayer}
-              className="mt-3"
-            >
-              Use Standard Video Player
-            </Button>
-          )}
+          <p className="mt-2 mb-4">Loading video...</p>
+          <Button variant="secondary" onClick={switchToSimplePlayer}>
+            Switch to Simple Player
+          </Button>
         </div>
       ) : error ? (
         <div className="d-flex flex-column justify-content-center align-items-center vh-100">
@@ -180,30 +89,31 @@ const VRViewerPage = () => {
             Go Back
           </Button>
         </div>
-      ) : useDirectPlayer ? (
+      ) : useSimplePlayer ? (
+        /* Simple Video Player View */
         <div className="vh-100 d-flex flex-column">
-          <div className="position-absolute top-0 start-0 w-100 p-3 d-flex justify-content-between align-items-center" style={{ zIndex: 999, backgroundColor: 'rgba(0,0,0,0.5)' }}>
-            <Button variant="light" size="sm" onClick={goBack}>
-              ← Back
+          <div className="p-2 bg-dark text-white d-flex justify-content-between">
+            <Button variant="outline-light" size="sm" onClick={goBack}>
+              Back
             </Button>
-            <Button variant="info" size="sm" onClick={enterFullscreen}>
-              Fullscreen
-            </Button>
+            <h5 className="m-0">Video Player</h5>
+            <div style={{ width: '50px' }}></div> {/* spacer for flex alignment */}
           </div>
           
-          <div className="flex-grow-1 d-flex align-items-center justify-content-center bg-dark">
+          <div className="flex-grow-1 bg-black d-flex align-items-center justify-content-center">
             <ReactPlayer
-              ref={playerRef}
               url={videoUrl}
+              controls
+              playing
               width="100%"
               height="100%"
-              playing
-              controls
               config={{
                 file: {
                   attributes: {
                     crossOrigin: "anonymous",
-                    style: { maxHeight: '100vh', maxWidth: '100%' }
+                    controlsList: "nodownload",
+                    playsInline: true,
+                    preload: "auto"
                   }
                 }
               }}
@@ -211,96 +121,72 @@ const VRViewerPage = () => {
           </div>
         </div>
       ) : (
-        <>
-          {/* A-Frame VR Scene */}
-          <a-scene 
-            embedded 
-            vr-mode-ui="enabled: true; cardboardModeEnabled: true;" 
-            device-orientation-permission-ui="enabled: true"
-            loading-screen="enabled: true; dotsColor: white; backgroundColor: black"
-          >
-            <a-assets timeout="30000">
-              <video 
-                id="vrVideo" 
-                src={videoUrl} 
-                autoPlay 
-                playsInline
-                loop 
-                crossOrigin="anonymous"
-                ref={videoRef}
-                preload="auto"
-                muted
-                playsinline="true"
-                webkit-playsinline="true"
-              ></video>
-            </a-assets>
-            
-            <a-videosphere 
-              src="#vrVideo" 
-              rotation="0 -90 0"
-              play-on-click
-            ></a-videosphere>
-            
-            {/* Add camera with controls for looking around */}
-            <a-entity position="0 1.6 0">
-              <a-camera look-controls="reverseMouseDrag: false" wasd-controls-enabled="false">
-                <a-entity
-                  position="0 0 -1.5"
-                  geometry="primitive: ring; radiusOuter: 0.03; radiusInner: 0.02;"
-                  material="color: white; shader: flat; opacity: 0.5"
-                  cursor="fuse: false"
-                  raycaster="far: 20; interval: 1000; objects: .clickable"
-                ></a-entity>
-              </a-camera>
-            </a-entity>
-            
-            {/* Button to play video (needed for iOS) */}
-            <a-entity 
-              position="0 1.5 -2" 
-              geometry="primitive: plane; width: 2; height: 1" 
-              material="color: #333; opacity: 0.7" 
-              class="clickable"
-              visible={!videoReady}
-              text="value: Tap to play video; align: center; width: 4; color: white"
-              event-set__click="_event: click; _target: #vrVideo; _delay: 0; visible: false"
-              proxy-event__click="_event: click; _target: #vrVideo; _as: play"
-            ></a-entity>
-          </a-scene>
-          
+        /* VR Scene for 360 Video */
+        <div className="vh-100 position-relative">
           {/* Control panel overlay */}
-          <div className="position-absolute top-0 start-0 w-100 p-3 d-flex justify-content-between align-items-center" style={{ zIndex: 999, backgroundColor: 'rgba(0,0,0,0.5)' }}>
-            <Button variant="light" size="sm" onClick={goBack}>
-              ← Back
+          <div className="position-absolute top-0 start-0 w-100 p-2 d-flex justify-content-between" 
+            style={{ zIndex: 100, backgroundColor: 'rgba(0,0,0,0.7)' }}>
+            <Button variant="outline-light" size="sm" onClick={goBack}>
+              Back to Projects
             </Button>
-            <div>
-              {isMobile() && (
-                <Button variant="primary" size="sm" onClick={enterVR} className="me-2">
-                  Enter VR Mode
-                </Button>
-              )}
-              <Button variant="warning" size="sm" onClick={switchToDirectPlayer} className="me-2">
-                Standard Player
-              </Button>
-              <Button variant="info" size="sm" onClick={enterFullscreen}>
-                Fullscreen
-              </Button>
-            </div>
+            <Button variant="outline-light" size="sm" onClick={switchToSimplePlayer}>
+              Standard Player
+            </Button>
           </div>
           
-          {/* Loading timeout message */}
-          {loadingTimeout && !videoReady && (
-            <div className="position-absolute bottom-0 start-0 w-100 p-3 bg-dark bg-opacity-75 text-white text-center">
-              <p className="mb-2">Video is taking longer than expected to load.</p>
-              <Button 
-                variant="warning" 
-                onClick={switchToDirectPlayer}
-                className="me-2"
+          {/* Direct video element for better compatibility with S3 */}
+          <div className="vh-100 bg-black d-flex align-items-center justify-content-center">
+            <div style={{ width: '100%', height: '100%' }}>
+              <a-scene 
+                ref={vrSceneRef}
+                embedded
+                loading-screen="dotsColor: white; backgroundColor: black"
+                vr-mode-ui="enabled: true"
+                device-orientation-permission-ui="enabled: true"
+                onLoaded={handleSceneLoaded}
               >
-                Try Standard Player
-              </Button>
+                <a-assets>
+                  <video
+                    id="vr-video"
+                    src={videoUrl}
+                    autoPlay
+                    loop
+                    crossOrigin="anonymous"
+                    playsInline
+                    muted
+                    preload="auto"
+                    style={{ display: 'none' }}
+                  ></video>
+                </a-assets>
+                
+                <a-videosphere 
+                  src="#vr-video"
+                  rotation="0 -90 0"
+                  play-on-click
+                ></a-videosphere>
+                
+                <a-camera position="0 1.6 0" wasd-controls-enabled="false">
+                  <a-cursor color="#FFFFFF"></a-cursor>
+                </a-camera>
+                
+                {/* Floating play button for mobile */}
+                <a-entity
+                  position="0 1.5 -3"
+                  geometry="primitive: plane; width: 3; height: 1"
+                  material="color: #333; opacity: 0.8"
+                  text="value: Tap here to play video; width: 3; color: white; align: center"
+                  onClick={() => {
+                    const video = document.getElementById('vr-video');
+                    if (video) {
+                      video.muted = false;
+                      video.play();
+                    }
+                  }}
+                ></a-entity>
+              </a-scene>
             </div>
-          )}
-        </>
+          </div>
+        </div>
       )}
     </Container>
   );
