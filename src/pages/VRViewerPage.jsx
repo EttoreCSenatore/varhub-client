@@ -9,7 +9,6 @@ const VRViewerPage = () => {
   // Sample VR video URLs for testing
   const sampleVideos = [
     { name: 'Sample VR Video 1', url: 'https://cdn.aframe.io/360-video-boilerplate/video/city.mp4' },
-    { name: 'Sample VR Video 2', url: 'https://cdn.aframe.io/360-video-sample/video/raccoon.mp4' },
   ];
 
   const handleSampleSelection = (e) => {
