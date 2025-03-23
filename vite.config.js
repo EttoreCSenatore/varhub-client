@@ -42,5 +42,20 @@ export default defineConfig({
         ]
       }
     }),  
-  ],  
+  ],
+  
+  // Add server proxy configuration to bypass CORS issues during development
+  server: {
+    port: 5173,
+    host: true,
+    proxy: {
+      // Proxy API requests to avoid CORS issues during development
+      '/api': {
+        target: 'https://varhub-server.vercel.app',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path
+      },
+    }
+  }
 });
