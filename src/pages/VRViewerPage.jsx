@@ -1,88 +1,108 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
-import VRPlayer from '../components/VRPlayer';
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { Container, Alert, Spinner, Button } from 'react-bootstrap';
+import 'aframe';
 
 const VRViewerPage = () => {
   const [videoUrl, setVideoUrl] = useState('');
-  const [showPlayer, setShowPlayer] = useState(false);
-  
-  // Sample VR video URLs for testing
-  const sampleVideos = [
-    { name: 'Sample VR Video 1', url: 'https://cdn.aframe.io/360-video-boilerplate/video/city.mp4' },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const location = useLocation();
 
-  const handleSampleSelection = (e) => {
-    const url = e.target.value;
-    setVideoUrl(url);
+  useEffect(() => {
+    // Parse URL parameters to get the video URL
+    const params = new URLSearchParams(location.search);
+    const encodedVideoUrl = params.get('video');
+    
+    if (encodedVideoUrl) {
+      try {
+        const decodedUrl = decodeURIComponent(encodedVideoUrl);
+        console.log("Loading VR video:", decodedUrl);
+        setVideoUrl(decodedUrl);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error parsing video URL:", err);
+        setError("Invalid video URL parameter");
+        setLoading(false);
+      }
+    } else {
+      setError("No video URL provided");
+      setLoading(false);
+    }
+  }, [location]);
+
+  // Go back to previous page
+  const goBack = () => {
+    window.history.back();
   };
 
-  const handlePlayVideo = (e) => {
-    e.preventDefault();
-    if (videoUrl) {
-      setShowPlayer(true);
+  // Function to handle fullscreen toggle
+  const enterFullscreen = () => {
+    const scene = document.querySelector('a-scene');
+    if (scene) {
+      if (scene.requestFullscreen) {
+        scene.requestFullscreen();
+      } else if (scene.mozRequestFullScreen) { /* Firefox */
+        scene.mozRequestFullScreen();
+      } else if (scene.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+        scene.webkitRequestFullscreen();
+      } else if (scene.msRequestFullscreen) { /* IE/Edge */
+        scene.msRequestFullscreen();
+      }
     }
   };
 
   return (
-    <Container className="py-3 py-md-4">
-      <h1 className="mb-3 mb-md-4">VR Video Viewer</h1>
-      
-      {!showPlayer ? (
-        <Row className="justify-content-center">
-          <Col xs={12} md={10} lg={8}>
-            <Card className="mb-4 shadow-sm">
-              <Card.Header className="bg-primary text-white">
-                <h2 className="h4 mb-0">Select a VR Video</h2>
-              </Card.Header>
-              <Card.Body className="p-3 p-md-4">
-                <Form onSubmit={handlePlayVideo}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Enter VR Video URL</Form.Label>
-                    <Form.Control 
-                      type="text" 
-                      placeholder="Enter URL to 360-degree video" 
-                      value={videoUrl}
-                      onChange={(e) => setVideoUrl(e.target.value)}
-                    />
-                  </Form.Group>
-                  
-                  <Form.Group className="mb-3">
-                    <Form.Label>Or select a sample video</Form.Label>
-                    <Form.Select onChange={handleSampleSelection}>
-                      <option value="">Choose a sample video</option>
-                      {sampleVideos.map((video, index) => (
-                        <option key={index} value={video.url}>{video.name}</option>
-                      ))}
-                    </Form.Select>
-                  </Form.Group>
-                  
-                  <div className="d-grid">
-                    <Button 
-                      variant="primary" 
-                      type="submit" 
-                      disabled={!videoUrl}
-                    >
-                      Play Video
-                    </Button>
-                  </div>
-                </Form>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      ) : (
-        <div>
-          <Button 
-            variant="secondary" 
-            className="mb-3"
-            onClick={() => setShowPlayer(false)}
-          >
-            Back to Selection
-          </Button>
-          <div className="vr-player-container rounded overflow-hidden shadow-sm" style={{ height: '70vh', width: '100%' }}>
-            <VRPlayer videoUrl={videoUrl} />
-          </div>
+    <Container fluid className="p-0 vh-100 position-relative">
+      {loading ? (
+        <div className="d-flex justify-content-center align-items-center vh-100">
+          <Spinner animation="border" variant="primary" />
+          <span className="ms-2">Loading VR viewer...</span>
         </div>
+      ) : error ? (
+        <div className="d-flex flex-column justify-content-center align-items-center vh-100">
+          <Alert variant="danger" className="text-center">
+            <Alert.Heading>Error</Alert.Heading>
+            <p>{error}</p>
+          </Alert>
+          <Button variant="primary" onClick={goBack}>
+            Go Back
+          </Button>
+        </div>
+      ) : (
+        <>
+          {/* A-Frame VR Scene */}
+          <a-scene embedded vr-mode-ui="enabled: true">
+            <a-assets>
+              <video 
+                id="vrVideo" 
+                src={videoUrl} 
+                autoPlay 
+                loop 
+                crossOrigin="anonymous"
+                playsInline
+              ></video>
+            </a-assets>
+            <a-videosphere 
+              src="#vrVideo" 
+              rotation="0 -90 0"
+            ></a-videosphere>
+            {/* Add camera controls for looking around */}
+            <a-camera>
+              <a-cursor></a-cursor>
+            </a-camera>
+          </a-scene>
+          
+          {/* Control panel overlay */}
+          <div className="position-absolute top-0 start-0 w-100 p-3 d-flex justify-content-between" style={{ zIndex: 999 }}>
+            <Button variant="light" onClick={goBack}>
+              ← Back
+            </Button>
+            <Button variant="primary" onClick={enterFullscreen}>
+              Enter Fullscreen
+            </Button>
+          </div>
+        </>
       )}
     </Container>
   );
