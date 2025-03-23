@@ -2,14 +2,18 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Container, Alert, Spinner, Button } from 'react-bootstrap';
 import 'aframe';
+import ReactPlayer from 'react-player';
 
 const VRViewerPage = () => {
   const [videoUrl, setVideoUrl] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [videoReady, setVideoReady] = useState(false);
+  const [useDirectPlayer, setUseDirectPlayer] = useState(false);
   const location = useLocation();
   const videoRef = useRef(null);
+  const playerRef = useRef(null);
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
 
   useEffect(() => {
     // Parse URL parameters to get the video URL
@@ -22,8 +26,15 @@ const VRViewerPage = () => {
         console.log("Loading VR video:", decodedUrl);
         setVideoUrl(decodedUrl);
         
-        // Don't set loading to false until video is ready
-        // This will happen in the video event listeners
+        // Set a timeout to handle stuck loading states
+        const timer = setTimeout(() => {
+          if (loading) {
+            console.log("Loading timeout reached - video might be having issues");
+            setLoadingTimeout(true);
+          }
+        }, 8000);
+        
+        return () => clearTimeout(timer);
       } catch (err) {
         console.error("Error parsing video URL:", err);
         setError("Invalid video URL parameter");
@@ -33,7 +44,7 @@ const VRViewerPage = () => {
       setError("No video URL provided");
       setLoading(false);
     }
-  }, [location]);
+  }, [location, loading]);
 
   // Handle video events
   useEffect(() => {
@@ -52,7 +63,7 @@ const VRViewerPage = () => {
         
         videoElement.addEventListener('error', (e) => {
           console.error("Video error:", e);
-          setError("Failed to load video. Please try a different format or URL.");
+          setUseDirectPlayer(true);
           setLoading(false);
         });
 
@@ -63,15 +74,12 @@ const VRViewerPage = () => {
           });
         });
         
-        // Handle iOS video loading issues
-        if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-          setTimeout(() => {
-            if (loading && !videoReady) {
-              setLoading(false);
-              console.log("Timeout for iOS video loading");
-            }
-          }, 5000);
-        }
+        // Check if video source was really loaded
+        videoElement.addEventListener('loadeddata', () => {
+          console.log("Video data loaded successfully");
+          setLoading(false);
+          setVideoReady(true);
+        });
       }
     };
     
@@ -83,7 +91,7 @@ const VRViewerPage = () => {
       
       return () => clearTimeout(timer);
     }
-  }, [videoUrl, loading, videoReady]);
+  }, [videoUrl]);
 
   // Go back to previous page
   const goBack = () => {
@@ -92,6 +100,15 @@ const VRViewerPage = () => {
 
   // Function to handle fullscreen toggle
   const enterFullscreen = () => {
+    if (useDirectPlayer) {
+      // If using direct player, use its fullscreen capability
+      const videoElement = document.querySelector('video');
+      if (videoElement && videoElement.requestFullscreen) {
+        videoElement.requestFullscreen();
+      }
+      return;
+    }
+    
     // For iOS, use a different approach
     if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
       // On iOS, trigger playback which will show fullscreen controls
@@ -119,7 +136,7 @@ const VRViewerPage = () => {
 
   // Check if running on mobile device
   const isMobile = () => {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    return /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
   };
 
   // Enter VR mode directly
@@ -130,12 +147,28 @@ const VRViewerPage = () => {
     }
   };
 
+  // Switch to direct player mode
+  const switchToDirectPlayer = () => {
+    setUseDirectPlayer(true);
+    setLoading(false);
+  };
+
   return (
     <Container fluid className="p-0 vh-100 position-relative">
-      {loading ? (
-        <div className="d-flex justify-content-center align-items-center vh-100">
+      {loading && !loadingTimeout ? (
+        <div className="d-flex flex-column justify-content-center align-items-center vh-100">
           <Spinner animation="border" variant="primary" />
-          <span className="ms-2">Loading VR video...</span>
+          <span className="ms-2 mb-3">Loading VR video...</span>
+          
+          {loadingTimeout && (
+            <Button 
+              variant="warning" 
+              onClick={switchToDirectPlayer}
+              className="mt-3"
+            >
+              Use Standard Video Player
+            </Button>
+          )}
         </div>
       ) : error ? (
         <div className="d-flex flex-column justify-content-center align-items-center vh-100">
@@ -147,6 +180,36 @@ const VRViewerPage = () => {
             Go Back
           </Button>
         </div>
+      ) : useDirectPlayer ? (
+        <div className="vh-100 d-flex flex-column">
+          <div className="position-absolute top-0 start-0 w-100 p-3 d-flex justify-content-between align-items-center" style={{ zIndex: 999, backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            <Button variant="light" size="sm" onClick={goBack}>
+              ← Back
+            </Button>
+            <Button variant="info" size="sm" onClick={enterFullscreen}>
+              Fullscreen
+            </Button>
+          </div>
+          
+          <div className="flex-grow-1 d-flex align-items-center justify-content-center bg-dark">
+            <ReactPlayer
+              ref={playerRef}
+              url={videoUrl}
+              width="100%"
+              height="100%"
+              playing
+              controls
+              config={{
+                file: {
+                  attributes: {
+                    crossOrigin: "anonymous",
+                    style: { maxHeight: '100vh', maxWidth: '100%' }
+                  }
+                }
+              }}
+            />
+          </div>
+        </div>
       ) : (
         <>
           {/* A-Frame VR Scene */}
@@ -156,7 +219,7 @@ const VRViewerPage = () => {
             device-orientation-permission-ui="enabled: true"
             loading-screen="enabled: true; dotsColor: white; backgroundColor: black"
           >
-            <a-assets>
+            <a-assets timeout="30000">
               <video 
                 id="vrVideo" 
                 src={videoUrl} 
@@ -215,11 +278,28 @@ const VRViewerPage = () => {
                   Enter VR Mode
                 </Button>
               )}
+              <Button variant="warning" size="sm" onClick={switchToDirectPlayer} className="me-2">
+                Standard Player
+              </Button>
               <Button variant="info" size="sm" onClick={enterFullscreen}>
                 Fullscreen
               </Button>
             </div>
           </div>
+          
+          {/* Loading timeout message */}
+          {loadingTimeout && !videoReady && (
+            <div className="position-absolute bottom-0 start-0 w-100 p-3 bg-dark bg-opacity-75 text-white text-center">
+              <p className="mb-2">Video is taking longer than expected to load.</p>
+              <Button 
+                variant="warning" 
+                onClick={switchToDirectPlayer}
+                className="me-2"
+              >
+                Try Standard Player
+              </Button>
+            </div>
+          )}
         </>
       )}
     </Container>
