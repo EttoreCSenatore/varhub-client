@@ -1,30 +1,19 @@
 import React, { useState } from 'react';  
 import { Link, useLocation } from 'react-router-dom';  
 import { Navbar, Nav, Container, Button, Dropdown } from 'react-bootstrap';
-import { QrCodeScan, PersonCircle } from 'react-bootstrap-icons';
+import { QrCodeScan, CameraVideoFill, PersonCircle } from 'react-bootstrap-icons';
 import { useAuth } from '../context/AuthContext';
 
 const NavBar = () => {  
   const location = useLocation();
   const [expanded, setExpanded] = useState(false);
-  const { user, logout } = useAuth();
+  const { currentUser, logout } = useAuth();
 
   const isActive = (path) => location.pathname === path;
   
   const handleLogout = () => {
     logout();
     setExpanded(false);
-  };
-  
-  const scrollToLogin = () => {
-    // If on homepage, scroll to login section
-    if (location.pathname === '/') {
-      const loginSection = document.getElementById('login-register-section');
-      if (loginSection) {
-        loginSection.scrollIntoView({ behavior: 'smooth' });
-      }
-      setExpanded(false);
-    }
   };
   
   return (  
@@ -75,11 +64,11 @@ const NavBar = () => {
               <QrCodeScan className="me-2" /> Scan QR
             </Button>
             
-            {user ? (
+            {currentUser ? (
               <Dropdown align="end">
                 <Dropdown.Toggle variant="light" id="user-dropdown" className="d-flex align-items-center">
                   <PersonCircle className="me-2" />
-                  {user.name}
+                  {currentUser.name}
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
                   <Dropdown.Item onClick={handleLogout}>
@@ -88,27 +77,14 @@ const NavBar = () => {
                 </Dropdown.Menu>
               </Dropdown>
             ) : (
-              location.pathname === '/' ? (
-                <Nav.Link 
-                  href="#login-register-section" 
-                  className="btn btn-light text-primary"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    scrollToLogin();
-                  }}
-                >
-                  Login
-                </Nav.Link>
-              ) : (
-                <Nav.Link 
-                  as={Link} 
-                  to="/" 
-                  className="btn btn-light text-primary"
-                  onClick={() => setExpanded(false)}
-                >
-                  Login
-                </Nav.Link>
-              )
+              <Nav.Link 
+                as={Link} 
+                to="/login" 
+                className="btn btn-light text-primary"
+                onClick={() => setExpanded(false)}
+              >
+                Login
+              </Nav.Link>
             )}
           </Nav>
         </Navbar.Collapse>
