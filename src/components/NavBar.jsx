@@ -1,13 +1,13 @@
 import React, { useState } from 'react';  
 import { Link, useLocation } from 'react-router-dom';  
-import { Navbar, Nav, Container, Button, Dropdown } from 'react-bootstrap';
-import { QrCodeScan, CameraVideoFill, PersonCircle } from 'react-bootstrap-icons';
+import { Navbar, Nav, Container, Button, Dropdown, Badge } from 'react-bootstrap';
+import { QrCodeScan, CameraVideoFill, PersonCircle, WifiOff, Wifi } from 'react-bootstrap-icons';
 import { useAuth } from '../context/AuthContext';
 
 const NavBar = () => {  
   const location = useLocation();
   const [expanded, setExpanded] = useState(false);
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, isOfflineMode, toggleOfflineMode } = useAuth();
 
   const isActive = (path) => location.pathname === path;
   
@@ -32,6 +32,16 @@ const NavBar = () => {
       <Container>
         <Navbar.Brand as={Link} to="/" className="fw-bold">
           VARhub
+          {isOfflineMode && (
+            <Badge 
+              bg="warning" 
+              text="dark" 
+              className="ms-2 align-middle" 
+              style={{ fontSize: '0.6rem' }}
+            >
+              OFFLINE
+            </Badge>
+          )}
         </Navbar.Brand>
         <Navbar.Toggle 
           aria-controls="responsive-navbar-nav" 
@@ -65,6 +75,27 @@ const NavBar = () => {
             </Nav.Link>
           </Nav>
           <Nav>
+            {isOfflineMode && (
+              <Button
+                variant="warning"
+                size="sm"
+                className="me-2 d-flex align-items-center"
+                onClick={toggleOfflineMode}
+              >
+                <Wifi className="me-1" /> Go Online
+              </Button>
+            )}
+            {!isOfflineMode && (
+              <Button
+                variant="outline-light"
+                size="sm"
+                className="me-2 d-flex align-items-center"
+                onClick={toggleOfflineMode}
+              >
+                <WifiOff className="me-1" /> Offline Mode
+              </Button>
+            )}
+            
             <Button 
               variant="outline-light" 
               className="me-2 d-flex align-items-center"
@@ -82,6 +113,18 @@ const NavBar = () => {
                   {currentUser.name}
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
+                  <Dropdown.Item as="button" onClick={toggleOfflineMode}>
+                    {isOfflineMode ? (
+                      <>
+                        <Wifi className="me-2" /> Go Online
+                      </>
+                    ) : (
+                      <>
+                        <WifiOff className="me-2" /> Use Offline Mode
+                      </>
+                    )}
+                  </Dropdown.Item>
+                  <Dropdown.Divider />
                   <Dropdown.Item onClick={handleLogout}>
                     Logout
                   </Dropdown.Item>

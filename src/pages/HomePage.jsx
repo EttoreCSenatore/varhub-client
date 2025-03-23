@@ -72,7 +72,35 @@ const HomePage = () => {
     setLoading(false);
     
     if (result.success) {
-      navigate('/projects');
+      if (result.isOfflineMode) {
+        // Show offline mode message to the user
+        setError('Server connection issue detected. Using offline mode with sample data.');
+        // Redirect after a short delay so the user can see the message
+        setTimeout(() => {
+          navigate('/projects');
+        }, 2000);
+      } else {
+        navigate('/projects');
+      }
+    } else if (result.canUseOfflineMode) {
+      // Offer offline mode option
+      setError(
+        <>
+          {result.message} 
+          <div className="mt-2">
+            <Button 
+              variant="secondary" 
+              size="sm"
+              onClick={() => {
+                localStorage.setItem('useMockData', 'true');
+                window.location.reload();
+              }}
+            >
+              Use Offline Mode
+            </Button>
+          </div>
+        </>
+      );
     } else {
       setError(result.message);
     }
@@ -111,7 +139,35 @@ const HomePage = () => {
     setLoading(false);
     
     if (result.success) {
-      navigate('/projects');
+      if (result.isOfflineMode) {
+        // Show offline mode message to the user
+        setError('Server connection issue detected. Using offline mode with sample data.');
+        // Redirect after a short delay so the user can see the message
+        setTimeout(() => {
+          navigate('/projects');
+        }, 2000);
+      } else {
+        navigate('/projects');
+      }
+    } else if (result.canUseOfflineMode) {
+      // Offer offline mode option
+      setError(
+        <>
+          {result.message} 
+          <div className="mt-2">
+            <Button 
+              variant="secondary" 
+              size="sm"
+              onClick={() => {
+                localStorage.setItem('useMockData', 'true');
+                window.location.reload();
+              }}
+            >
+              Use Offline Mode
+            </Button>
+          </div>
+        </>
+      );
     } else {
       setError(result.message);
     }
@@ -164,7 +220,22 @@ const HomePage = () => {
                 className="mb-4"
               >
                 <Tab eventKey="login" title="Login">
-                  {error && <Alert variant="danger">{error}</Alert>}
+                  {error && (
+                    typeof error === 'string' 
+                      ? <Alert variant="danger">{error}</Alert>
+                      : error // If error is a React component (for offline mode option)
+                  )}
+                  
+                  {/* Network error notice */}
+                  {localStorage.getItem('autoOfflineMode') === 'true' && (
+                    <Alert variant="warning" className="mb-3">
+                      <Alert.Heading className="h6">Network Connection Issue</Alert.Heading>
+                      <p className="mb-0">
+                        Server connection problem detected. The app has switched to offline mode with sample data.
+                        Some features may be limited.
+                      </p>
+                    </Alert>
+                  )}
                   
                   <Form onSubmit={handleLogin}>
                     <Form.Group className="mb-3">
@@ -226,7 +297,22 @@ const HomePage = () => {
                 </Tab>
                 
                 <Tab eventKey="register" title="Register">
-                  {error && <Alert variant="danger">{error}</Alert>}
+                  {error && (
+                    typeof error === 'string' 
+                      ? <Alert variant="danger">{error}</Alert>
+                      : error // If error is a React component (for offline mode option)
+                  )}
+                  
+                  {/* Network error notice */}
+                  {localStorage.getItem('autoOfflineMode') === 'true' && (
+                    <Alert variant="warning" className="mb-3">
+                      <Alert.Heading className="h6">Network Connection Issue</Alert.Heading>
+                      <p className="mb-0">
+                        Server connection problem detected. The app has switched to offline mode with sample data.
+                        Some features may be limited.
+                      </p>
+                    </Alert>
+                  )}
                   
                   <Form onSubmit={handleRegister}>
                     <Form.Group className="mb-3">
