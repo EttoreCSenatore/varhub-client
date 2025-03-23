@@ -11,7 +11,6 @@ import { useAuth } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import NotFoundPage from './pages/NotFoundPage';
 import ErrorBoundary from './components/ErrorBoundary';
-import OfflineNotification from './components/OfflineNotification';
 
 function App() {  
   const { loading } = useAuth();
@@ -28,13 +27,6 @@ function App() {
   return (  
     <div className="app-container d-flex flex-column min-vh-100">
       <NavBar />  
-      
-      {/* Offline mode notification */}
-      <div className="container mt-3 mt-lg-4">
-        <OfflineNotification>
-          You're currently using offline mode with sample data. Some features may be limited.
-        </OfflineNotification>
-      </div>
       
       {/* Main content with padding for fixed navbar */}
       <main className="flex-grow-1 pt-5 mt-4 px-2">
