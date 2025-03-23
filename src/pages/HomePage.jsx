@@ -21,7 +21,7 @@ import {
   Diagram3, 
   Camera
 } from 'react-bootstrap-icons';
-import axios from 'axios';
+import api from '../utils/api';
 import { requestNotificationPermission } from '../firebase';
 
 const HomePage = () => {
@@ -46,8 +46,8 @@ const HomePage = () => {
     setError('');
     
     try {
-      const response = await axios.post(
-        'http://localhost:5000/api/auth/login',
+      const response = await api.post(
+        '/api/auth/login',
         { email: loginEmail, password: loginPassword }
       );
       
@@ -72,8 +72,8 @@ const HomePage = () => {
     setError('');
     
     try {
-      const response = await axios.post(
-        'http://localhost:5000/api/auth/register',
+      const response = await api.post(
+        '/api/auth/register',
         {
           name: registerName,
           email: registerEmail,
