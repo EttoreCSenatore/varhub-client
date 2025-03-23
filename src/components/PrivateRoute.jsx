@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 
 /**
  * A wrapper for routes that should only be accessible to authenticated users
- * Redirects to login page if user is not authenticated
+ * Redirects to homepage if user is not authenticated
  */
 const PrivateRoute = ({ children }) => {
   const { currentUser, loading } = useAuth();
@@ -20,9 +20,9 @@ const PrivateRoute = ({ children }) => {
     );
   }
 
-  // Redirect to login if not authenticated
+  // Redirect to homepage if not authenticated
   if (!currentUser) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/" />;
   }
 
   // Render the component if authenticated

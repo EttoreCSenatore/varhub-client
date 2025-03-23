@@ -16,6 +16,17 @@ const NavBar = () => {
     setExpanded(false);
   };
   
+  const scrollToLogin = () => {
+    // If on homepage, scroll to login section
+    if (location.pathname === '/') {
+      const loginSection = document.getElementById('login-section');
+      if (loginSection) {
+        loginSection.scrollIntoView({ behavior: 'smooth' });
+      }
+      setExpanded(false);
+    }
+  };
+  
   return (  
     <Navbar bg="primary" variant="dark" expand="lg" fixed="top" expanded={expanded} className="shadow-sm">
       <Container>
@@ -77,14 +88,27 @@ const NavBar = () => {
                 </Dropdown.Menu>
               </Dropdown>
             ) : (
-              <Nav.Link 
-                as={Link} 
-                to="/login" 
-                className="btn btn-light text-primary"
-                onClick={() => setExpanded(false)}
-              >
-                Login
-              </Nav.Link>
+              location.pathname === '/' ? (
+                <Nav.Link 
+                  href="#login-section" 
+                  className="btn btn-light text-primary"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    scrollToLogin();
+                  }}
+                >
+                  Login
+                </Nav.Link>
+              ) : (
+                <Nav.Link 
+                  as={Link} 
+                  to="/" 
+                  className="btn btn-light text-primary"
+                  onClick={() => setExpanded(false)}
+                >
+                  Login
+                </Nav.Link>
+              )
             )}
           </Nav>
         </Navbar.Collapse>
