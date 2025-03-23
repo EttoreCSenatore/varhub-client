@@ -5,18 +5,17 @@ import { Spinner, Alert, Button, Card } from 'react-bootstrap';
 import ReactPlayer from 'react-player';
 
 const QRScanner = () => {
-  // State for QR scanning and video data
+  // State for QR scanning
   const [result, setResult] = useState('');
-  const [videoUrl, setVideoUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isVrMode, setIsVrMode] = useState(false);
   
   // State for camera controls
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState(null);
   const [scanningActive, setScanningActive] = useState(false);
   const [scanAttempts, setScanAttempts] = useState(0);
+  const [qrDetected, setQrDetected] = useState(false);
   
   // Refs for video and canvas elements
   const videoRef = useRef(null);
@@ -25,7 +24,6 @@ const QRScanner = () => {
   const streamRef = useRef(null);
   const html5QrScannerRef = useRef(null);
   const qrReaderDivRef = useRef(null);
-  const vrPlayerRef = useRef(null);
 
   // Start or stop camera based on cameraActive state
   useEffect(() => {
@@ -67,6 +65,7 @@ const QRScanner = () => {
                 processQrCodeResult(decodedText);
                 html5QrScanner.stop();
                 setScanningActive(false);
+                setQrDetected(true);
               },
               (errorMessage) => {
                 // QR Code scanning is ongoing, ignore intermediate errors
@@ -224,6 +223,7 @@ const QRScanner = () => {
         // Stop scanning once a QR code is found
         clearInterval(scannerIntervalRef.current);
         setScanningActive(false);
+        setQrDetected(true);
         
         // Draw QR code location on canvas for visual feedback
         drawQRCodeHighlight(context, qrCode.location);
@@ -254,10 +254,9 @@ const QRScanner = () => {
   // Reset scanner to try again
   const resetScanner = () => {
     setResult('');
-    setVideoUrl(null);
     setError(null);
     setScanAttempts(0);
-    setIsVrMode(false);
+    setQrDetected(false);
     setCameraActive(true);
   };
 
@@ -267,78 +266,32 @@ const QRScanner = () => {
     setError(null);
 
     try {
-      // Basic URL validation
-      const urlObj = new URL(url);
-      console.log("Detected URL:", urlObj.href);
-      
-      // Check if URL is a video
-      const isVideoUrl = checkIfVideoUrl(url);
-      
-      if (isVideoUrl) {
-        // Special handling for S3 URLs which might need CORS handling
-        if (url.includes('s3.') && url.endsWith('.mp4')) {
-          console.log("S3 video detected:", url);
-        }
-        setVideoUrl(url);
-        
-        // Immediately open VR viewer in the same window for Cardboard compatibility
-        if (isVideoUrl && isMobile()) {
-          // For mobile devices, redirect to VR viewer immediately
-          window.location.href = `/vr-viewer?video=${encodeURIComponent(url)}`;
-          return;
-        }
+      // Basic validation to check if it's a URL
+      if (isValidUrl(url)) {
+        console.log("Valid URL detected:", url);
+        // Open the URL directly
+        window.location.href = url;
       } else {
-        // If not a video, offer to open it externally
-        setError(`The scanned URL doesn't appear to be a video. Would you like to open it externally?`);
-        setResult(url); // Save the URL for external opening
+        console.log("Non-URL text detected:", url);
+        // If not a URL, just display the result as text
+        setQrDetected(true);
       }
     } catch (err) {
-      console.error('Invalid URL:', err);
-      setError(`Invalid URL: ${err.message || 'The QR code does not contain a valid URL'}`);
+      console.error('Error processing QR result:', err);
+      setError(`Error processing QR code: ${err.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // Check if the user is on a mobile device
-  const isMobile = () => {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  };
-
-  // Check if URL is likely a video
-  const checkIfVideoUrl = (url) => {
-    // Common video extensions and domains
-    const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi'];
-    const videoDomains = ['youtube.com', 'youtu.be', 'vimeo.com', 'dailymotion.com', 'twitch.tv'];
-    
+  // Check if string is a valid URL
+  const isValidUrl = (string) => {
     try {
-      const urlObj = new URL(url);
-      
-      // Check if domain is a known video platform
-      if (videoDomains.some(domain => urlObj.hostname.includes(domain))) {
-        return true;
-      }
-      
-      // Check if URL ends with a video extension
-      if (videoExtensions.some(ext => urlObj.pathname.toLowerCase().endsWith(ext))) {
-        return true;
-      }
-      
-      // If S3 URL with MP4, definitely a video
-      if (url.includes('s3.') && url.endsWith('.mp4')) {
-        return true;
-      }
-      
-      // If unsure, we'll assume it might be a video and let the player component handle it
+      new URL(string);
       return true;
     } catch (err) {
       return false;
     }
-  };
-
-  // Toggle VR mode
-  const toggleVrMode = () => {
-    setIsVrMode(!isVrMode);
   };
 
   // Open URL externally
@@ -348,11 +301,9 @@ const QRScanner = () => {
     }
   };
 
-  // Open in VR viewer
-  const openVRViewer = () => {
-    if (videoUrl) {
-      window.location.href = `/vr-viewer?video=${encodeURIComponent(videoUrl)}`;
-    }
+  // Check if running on mobile device
+  const isMobile = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   };
 
   return (
@@ -363,10 +314,10 @@ const QRScanner = () => {
         </Card.Header>
         <Card.Body>
           {/* HTML5 QR Scanner container */}
-          <div id="qr-reader" ref={qrReaderDivRef} style={{ display: cameraActive && !result ? 'block' : 'none', width: '100%', maxWidth: '500px', margin: '0 auto' }}></div>
+          <div id="qr-reader" ref={qrReaderDivRef} style={{ display: cameraActive && !qrDetected ? 'block' : 'none', width: '100%', maxWidth: '500px', margin: '0 auto' }}></div>
           
           {/* Camera toggle button */}
-          {!cameraActive && !videoUrl && !result && (
+          {!cameraActive && !qrDetected && (
             <div className="text-center mb-4">
               <Button 
                 variant="primary" 
@@ -391,7 +342,7 @@ const QRScanner = () => {
           )}
           
           {/* Video display when camera is active (Legacy approach) */}
-          {cameraActive && !result && !html5QrScannerRef.current && (
+          {cameraActive && !qrDetected && !html5QrScannerRef.current && (
             <div className="qr-scanner-preview mb-3 position-relative">
               {/* Visible video preview */}
               <video 
@@ -454,25 +405,32 @@ const QRScanner = () => {
             </div>
           )}
 
-          {/* Error with external URL option */}
-          {error && result && checkIfVideoUrl(result) === false && (
-            <Alert variant="warning" className="mb-3">
-              {error}
-              <div className="mt-2 d-flex gap-2">
-                <Button variant="primary" size="sm" onClick={openExternalUrl}>
-                  Open URL
-                </Button>
-                <Button variant="outline-secondary" size="sm" onClick={resetScanner}>
-                  Scan Again
+          {/* QR Result display when not a URL */}
+          {qrDetected && !isValidUrl(result) && (
+            <div className="mt-3">
+              <Alert variant="success">
+                <Alert.Heading>QR Code Detected</Alert.Heading>
+                <p className="mb-0">
+                  <strong>Content:</strong> {result}
+                </p>
+              </Alert>
+              <div className="d-flex justify-content-end mt-3">
+                <Button 
+                  variant="primary" 
+                  size="sm" 
+                  onClick={resetScanner}
+                >
+                  Scan Another Code
                 </Button>
               </div>
-            </Alert>
+            </div>
           )}
 
-          {/* General error message */}
-          {error && !cameraError && !result && (
+          {/* Error with external URL option */}
+          {error && (
             <Alert variant="danger" className="mb-3">
-              {error}
+              <Alert.Heading>Error</Alert.Heading>
+              <p>{error}</p>
               <div className="mt-2">
                 <Button variant="outline-danger" size="sm" onClick={resetScanner}>
                   Try Again
@@ -485,62 +443,11 @@ const QRScanner = () => {
           {loading && (
             <div className="text-center p-4">
               <Spinner animation="border" variant="primary" className="mb-2" />
-              <p>Loading content...</p>
+              <p>Processing QR code...</p>
             </div>
           )}
         </Card.Body>
       </Card>
-
-      {/* Video Player with VR Mode */}
-      {videoUrl && !isMobile() && (
-        <Card>
-          <Card.Header className="d-flex justify-content-between align-items-center">
-            <h4 className="mb-0">Video Player</h4>
-            <div>
-              <Button 
-                variant="primary" 
-                onClick={openVRViewer}
-                className="me-2"
-              >
-                View in VR Mode
-              </Button>
-              <Button 
-                variant="outline-secondary" 
-                size="sm" 
-                onClick={resetScanner}
-              >
-                Scan Another
-              </Button>
-            </div>
-          </Card.Header>
-          <Card.Body>
-            <div className="video-container mb-3">
-              <ReactPlayer
-                url={videoUrl}
-                width="100%"
-                height="60vh"
-                controls={true}
-                playing={true}
-                config={{
-                  file: {
-                    attributes: {
-                      crossOrigin: "anonymous"
-                    }
-                  }
-                }}
-              />
-            </div>
-
-            <div className="mt-3">
-              <Alert variant="info">
-                <small>
-                  Scanned URL: <a href={videoUrl} target="_blank" rel="noopener noreferrer">{videoUrl}</a>
-                </small>
-              </Alert>
-            </div>
-          </Card.Body>
-        </Card>
-      )}
     </div>
   );
 };
