@@ -4,7 +4,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { Spinner, Alert, Button, Card } from 'react-bootstrap';
 import ReactPlayer from 'react-player';
 import 'aframe';
-import { createCorsProxyUrl, setupCorsVideoElement } from '../utils/cors-proxy';
+import { createCorsProxyUrl, setupCorsVideoElement, setupDirectVideoElement, s3CorsConfigInstructions } from '../utils/cors-proxy';
 
 const QRScanner = () => {
   // State for QR scanning
@@ -15,6 +15,7 @@ const QRScanner = () => {
   const [useSimplePlayer, setUseSimplePlayer] = useState(false);
   const [showVrViewer, setShowVrViewer] = useState(false);
   const [proxyUrl, setProxyUrl] = useState(null);
+  const [corsError, setCorsError] = useState(false);
   
   // State for camera controls
   const [cameraActive, setCameraActive] = useState(false);
@@ -274,6 +275,7 @@ const QRScanner = () => {
   const processQrCodeResult = (url) => {
     setLoading(true);
     setError(null);
+    setCorsError(false);
 
     try {
       // Basic validation to check if it's a URL
@@ -284,10 +286,10 @@ const QRScanner = () => {
         if (isVideoUrl(url)) {
           console.log("Video URL detected, loading in embedded viewer");
           
-          // Use our utility to create a proxy URL if needed
+          // Generate a proxy URL if needed, but don't rely on it yet
           const proxiedUrl = createCorsProxyUrl(url);
           if (proxiedUrl !== url) {
-            console.log("Using CORS proxy for video:", proxiedUrl);
+            console.log("Generated proxy URL:", proxiedUrl);
             setProxyUrl(proxiedUrl);
           }
           
@@ -359,6 +361,43 @@ const QRScanner = () => {
     }
   };
 
+  // Handle video element error
+  const handleVideoError = (event) => {
+    console.error("Video error:", event);
+    setCorsError(true);
+    // Switch to simple player on video error
+    switchToSimplePlayer();
+  };
+  
+  // Function to try different methods of loading the video
+  const tryLoadingWithVariousApproaches = (videoEl) => {
+    if (!videoEl) return;
+    
+    console.log("Trying multiple approaches to load the video");
+    
+    // Add error listener
+    videoEl.addEventListener('error', handleVideoError);
+    
+    // Try direct approach first (for properly configured S3 buckets)
+    try {
+      console.log("Approach 1: Direct loading with CORS headers");
+      setupDirectVideoElement(videoEl, videoUrl);
+      
+      // Then try with a proxied URL if we have it
+      setTimeout(() => {
+        if (videoEl.networkState === 3 && proxyUrl) { // NETWORK_NO_SOURCE
+          console.log("Direct loading failed, trying proxy approach");
+          setupCorsVideoElement(videoEl, videoUrl);
+        }
+      }, 3000);
+    } catch (e) {
+      console.error("Error setting up video element:", e);
+      if (proxyUrl) {
+        setupCorsVideoElement(videoEl, videoUrl);
+      }
+    }
+  };
+
   // Once the Aframe scene has loaded
   const handleSceneLoaded = () => {
     setLoading(false);
@@ -368,16 +407,16 @@ const QRScanner = () => {
     setTimeout(() => {
       const videoEl = document.getElementById('vr-video');
       if (videoEl) {
-        // Use our utility to set up the video element with CORS handling
-        setupCorsVideoElement(videoEl, videoUrl);
+        // Try multiple approaches for loading the video
+        tryLoadingWithVariousApproaches(videoEl);
         
         // Try playing the video with user interaction fallback
         videoEl.play().catch(err => {
           console.warn("Could not autoplay video:", err);
-          // Add visible play UI feedback for user
+          // We'll rely on user interaction through the play button
         });
       }
-    }, 1000); // Longer delay to ensure DOM is ready
+    }, 1000);
   };
   
   // Switch to simple player view
@@ -583,8 +622,17 @@ const QRScanner = () => {
             ) : useSimplePlayer ? (
               /* Simple Video Player View */
               <div className="video-container" style={{ height: '70vh' }}>
+                {corsError && (
+                  <Alert variant="warning" className="mb-2">
+                    <Alert.Heading>CORS Access Issue</Alert.Heading>
+                    <p>
+                      The video cannot be accessed due to cross-origin restrictions.
+                      The S3 bucket needs to be configured to allow access from this website.
+                    </p>
+                  </Alert>
+                )}
                 <ReactPlayer
-                  url={videoUrl}
+                  url={videoUrl}  // Use direct URL for ReactPlayer
                   controls
                   playing
                   width="100%"
@@ -598,6 +646,10 @@ const QRScanner = () => {
                         preload: "auto"
                       }
                     }
+                  }}
+                  onError={(e) => {
+                    console.error("ReactPlayer error:", e);
+                    setCorsError(true);
                   }}
                 />
               </div>
@@ -631,6 +683,7 @@ const QRScanner = () => {
                         muted
                         webkit-playsinline="true"
                         style={{ display: 'none' }}
+                        onError={handleVideoError}  // Add error handler
                       ></video>
                     </a-assets>
                     
