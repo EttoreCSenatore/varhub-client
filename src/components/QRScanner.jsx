@@ -3,12 +3,16 @@ import jsQR from 'jsqr';
 import { Html5Qrcode } from 'html5-qrcode';
 import { Spinner, Alert, Button, Card } from 'react-bootstrap';
 import ReactPlayer from 'react-player';
+import 'aframe';
 
 const QRScanner = () => {
   // State for QR scanning
   const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [videoUrl, setVideoUrl] = useState(null);
+  const [useSimplePlayer, setUseSimplePlayer] = useState(false);
+  const [showVrViewer, setShowVrViewer] = useState(false);
   
   // State for camera controls
   const [cameraActive, setCameraActive] = useState(false);
@@ -24,6 +28,7 @@ const QRScanner = () => {
   const streamRef = useRef(null);
   const html5QrScannerRef = useRef(null);
   const qrReaderDivRef = useRef(null);
+  const vrSceneRef = useRef(null);
 
   // Start or stop camera based on cameraActive state
   useEffect(() => {
@@ -254,9 +259,12 @@ const QRScanner = () => {
   // Reset scanner to try again
   const resetScanner = () => {
     setResult('');
+    setVideoUrl(null);
     setError(null);
     setScanAttempts(0);
     setQrDetected(false);
+    setShowVrViewer(false);
+    setUseSimplePlayer(false);
     setCameraActive(true);
   };
 
@@ -269,8 +277,18 @@ const QRScanner = () => {
       // Basic validation to check if it's a URL
       if (isValidUrl(url)) {
         console.log("Valid URL detected:", url);
-        // Open the URL directly
-        window.location.href = url;
+        
+        // Check if it's a video URL
+        if (isVideoUrl(url)) {
+          console.log("Video URL detected, loading in embedded viewer");
+          setVideoUrl(url);
+          setShowVrViewer(true);
+        } else {
+          // For non-video URLs, offer to open externally
+          setResult(url);
+          setQrDetected(true);
+          console.log("Non-video URL detected:", url);
+        }
       } else {
         console.log("Non-URL text detected:", url);
         // If not a URL, just display the result as text
@@ -293,6 +311,36 @@ const QRScanner = () => {
       return false;
     }
   };
+  
+  // Check if URL is likely a video
+  const isVideoUrl = (url) => {
+    // Common video extensions and domains
+    const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi'];
+    const videoDomains = ['youtube.com', 'youtu.be', 'vimeo.com', 'dailymotion.com', 'twitch.tv'];
+    
+    try {
+      const urlObj = new URL(url);
+      
+      // Check if domain is a known video platform
+      if (videoDomains.some(domain => urlObj.hostname.includes(domain))) {
+        return true;
+      }
+      
+      // Check if URL ends with a video extension
+      if (videoExtensions.some(ext => urlObj.pathname.toLowerCase().endsWith(ext))) {
+        return true;
+      }
+      
+      // If S3 URL with MP4, definitely a video
+      if (url.includes('s3.') && url.endsWith('.mp4')) {
+        return true;
+      }
+      
+      return false;
+    } catch (err) {
+      return false;
+    }
+  };
 
   // Open URL externally
   const openExternalUrl = () => {
@@ -301,153 +349,323 @@ const QRScanner = () => {
     }
   };
 
-  // Check if running on mobile device
-  const isMobile = () => {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  // Once the Aframe scene has loaded
+  const handleSceneLoaded = () => {
+    setLoading(false);
+    console.log("VR Scene loaded");
+    
+    // Properly handle video playback
+    setTimeout(() => {
+      const videoEl = document.getElementById('vr-video');
+      if (videoEl) {
+        // Set both src and setAttribute for better compatibility
+        if (videoUrl) {
+          videoEl.src = videoUrl;
+          videoEl.setAttribute('src', videoUrl);
+        }
+        
+        // Ensure proper CORS handling
+        videoEl.crossOrigin = "anonymous";
+        
+        // Try playing the video with user interaction fallback
+        videoEl.play().catch(err => {
+          console.warn("Could not autoplay video:", err);
+          // Add visible play UI feedback for user
+        });
+      }
+    }, 500); // Short delay to ensure DOM is ready
+  };
+  
+  // Switch to simple player view
+  const switchToSimplePlayer = () => {
+    setUseSimplePlayer(true);
+    setLoading(false);
+  };
+  
+  // Go back to scan another QR code
+  const goBackToScanner = () => {
+    setShowVrViewer(false);
+    setVideoUrl(null);
+    setQrDetected(false);
+    resetScanner();
   };
 
   return (
     <div className="qr-scanner-container">
-      <Card className="mb-4">
-        <Card.Header>
-          <h3 className="mb-0">QR Code Scanner</h3>
-        </Card.Header>
-        <Card.Body>
-          {/* HTML5 QR Scanner container */}
-          <div id="qr-reader" ref={qrReaderDivRef} style={{ display: cameraActive && !qrDetected ? 'block' : 'none', width: '100%', maxWidth: '500px', margin: '0 auto' }}></div>
-          
-          {/* Camera toggle button */}
-          {!cameraActive && !qrDetected && (
-            <div className="text-center mb-4">
-              <Button 
-                variant="primary" 
-                onClick={() => setCameraActive(true)}
-                className="mb-3"
-              >
-                Start Camera
-              </Button>
-              <p className="text-muted">Click to activate your camera and scan a QR code.</p>
-            </div>
-          )}
-          
-          {/* Camera error message */}
-          {cameraError && (
-            <Alert variant="danger" className="mb-3">
-              <Alert.Heading>Camera Error</Alert.Heading>
-              <p>{cameraError}</p>
-              <Button variant="outline-danger" size="sm" onClick={() => setCameraActive(true)}>
-                Try Again
-              </Button>
-            </Alert>
-          )}
-          
-          {/* Video display when camera is active (Legacy approach) */}
-          {cameraActive && !qrDetected && !html5QrScannerRef.current && (
-            <div className="qr-scanner-preview mb-3 position-relative">
-              {/* Visible video preview */}
-              <video 
-                ref={videoRef} 
-                autoPlay 
-                playsInline 
-                className="w-100 border rounded"
-                style={{ maxHeight: '50vh', backgroundColor: '#000' }} 
-              />
-              
-              {/* Canvas overlay for QR detection */}
-              <canvas 
-                ref={canvasRef}
-                className="position-absolute top-0 start-0 w-100 h-100" 
-                style={{ display: 'none' }} 
-              />
-              
-              {/* QR code scan target overlay */}
-              <div className="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center pointer-events-none">
-                <div 
-                  style={{ 
-                    border: '2px dashed rgba(255, 255, 255, 0.5)', 
-                    width: '80%', 
-                    height: '80%', 
-                    maxWidth: '300px',
-                    maxHeight: '300px',
-                    borderRadius: '20px'
-                  }} 
-                />
-              </div>
-              
-              {/* Scanning indicator */}
-              {scanningActive && (
-                <div className="position-absolute top-0 start-0 w-100 p-2 bg-dark bg-opacity-25 text-white">
-                  <div className="d-flex align-items-center">
-                    <Spinner 
-                      animation="border" 
-                      size="sm" 
-                      variant="light" 
-                      className="me-2" 
-                    />
-                    <small>
-                      Scanning for QR code...
-                      {scanAttempts > 10 && " Center the code in the viewfinder."}
-                      {scanAttempts > 20 && " Make sure the QR code is well-lit and clearly visible."}
-                    </small>
-                  </div>
-                </div>
-              )}
-              
-              {/* Stop scanning button */}
-              <Button 
-                variant="light" 
-                size="sm" 
-                className="position-absolute bottom-0 end-0 m-2"
-                onClick={() => setCameraActive(false)}
-              >
-                Cancel
-              </Button>
-            </div>
-          )}
-
-          {/* QR Result display when not a URL */}
-          {qrDetected && !isValidUrl(result) && (
-            <div className="mt-3">
-              <Alert variant="success">
-                <Alert.Heading>QR Code Detected</Alert.Heading>
-                <p className="mb-0">
-                  <strong>Content:</strong> {result}
-                </p>
-              </Alert>
-              <div className="d-flex justify-content-end mt-3">
+      {!showVrViewer ? (
+        <Card className="mb-4">
+          <Card.Header>
+            <h3 className="mb-0">QR Code Scanner</h3>
+          </Card.Header>
+          <Card.Body>
+            {/* HTML5 QR Scanner container */}
+            <div id="qr-reader" ref={qrReaderDivRef} style={{ display: cameraActive && !qrDetected ? 'block' : 'none', width: '100%', maxWidth: '500px', margin: '0 auto' }}></div>
+            
+            {/* Camera toggle button */}
+            {!cameraActive && !qrDetected && (
+              <div className="text-center mb-4">
                 <Button 
                   variant="primary" 
-                  size="sm" 
-                  onClick={resetScanner}
+                  onClick={() => setCameraActive(true)}
+                  className="mb-3"
                 >
-                  Scan Another Code
+                  Start Camera
                 </Button>
+                <p className="text-muted">Click to activate your camera and scan a QR code.</p>
               </div>
-            </div>
-          )}
-
-          {/* Error with external URL option */}
-          {error && (
-            <Alert variant="danger" className="mb-3">
-              <Alert.Heading>Error</Alert.Heading>
-              <p>{error}</p>
-              <div className="mt-2">
-                <Button variant="outline-danger" size="sm" onClick={resetScanner}>
+            )}
+            
+            {/* Camera error message */}
+            {cameraError && (
+              <Alert variant="danger" className="mb-3">
+                <Alert.Heading>Camera Error</Alert.Heading>
+                <p>{cameraError}</p>
+                <Button variant="outline-danger" size="sm" onClick={() => setCameraActive(true)}>
                   Try Again
                 </Button>
+              </Alert>
+            )}
+            
+            {/* Video display when camera is active (Legacy approach) */}
+            {cameraActive && !qrDetected && !html5QrScannerRef.current && (
+              <div className="qr-scanner-preview mb-3 position-relative">
+                {/* Visible video preview */}
+                <video 
+                  ref={videoRef} 
+                  autoPlay 
+                  playsInline 
+                  className="w-100 border rounded"
+                  style={{ maxHeight: '50vh', backgroundColor: '#000' }} 
+                />
+                
+                {/* Canvas overlay for QR detection */}
+                <canvas 
+                  ref={canvasRef}
+                  className="position-absolute top-0 start-0 w-100 h-100" 
+                  style={{ display: 'none' }} 
+                />
+                
+                {/* QR code scan target overlay */}
+                <div className="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center pointer-events-none">
+                  <div 
+                    style={{ 
+                      border: '2px dashed rgba(255, 255, 255, 0.5)', 
+                      width: '80%', 
+                      height: '80%', 
+                      maxWidth: '300px',
+                      maxHeight: '300px',
+                      borderRadius: '20px'
+                    }} 
+                  />
+                </div>
+                
+                {/* Scanning indicator */}
+                {scanningActive && (
+                  <div className="position-absolute top-0 start-0 w-100 p-2 bg-dark bg-opacity-25 text-white">
+                    <div className="d-flex align-items-center">
+                      <Spinner 
+                        animation="border" 
+                        size="sm" 
+                        variant="light" 
+                        className="me-2" 
+                      />
+                      <small>
+                        Scanning for QR code...
+                        {scanAttempts > 10 && " Center the code in the viewfinder."}
+                        {scanAttempts > 20 && " Make sure the QR code is well-lit and clearly visible."}
+                      </small>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Stop scanning button */}
+                <Button 
+                  variant="light" 
+                  size="sm" 
+                  className="position-absolute bottom-0 end-0 m-2"
+                  onClick={() => setCameraActive(false)}
+                >
+                  Cancel
+                </Button>
               </div>
-            </Alert>
-          )}
+            )}
 
-          {/* Loading indicator */}
-          {loading && (
-            <div className="text-center p-4">
-              <Spinner animation="border" variant="primary" className="mb-2" />
-              <p>Processing QR code...</p>
-            </div>
-          )}
-        </Card.Body>
-      </Card>
+            {/* QR Result display when not a video URL */}
+            {qrDetected && !showVrViewer && (
+              <div className="mt-3">
+                <Alert variant={isValidUrl(result) ? "info" : "success"}>
+                  <Alert.Heading>QR Code Detected</Alert.Heading>
+                  <p className="mb-0">
+                    <strong>Content:</strong> {result}
+                  </p>
+                </Alert>
+                {isValidUrl(result) && (
+                  <div className="d-flex justify-content-end mt-2">
+                    <Button 
+                      variant="primary" 
+                      size="sm" 
+                      onClick={openExternalUrl}
+                      className="me-2"
+                    >
+                      Open URL
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      onClick={resetScanner}
+                    >
+                      Scan Another QR Code
+                    </Button>
+                  </div>
+                )}
+                {!isValidUrl(result) && (
+                  <div className="d-flex justify-content-end mt-2">
+                    <Button 
+                      variant="primary" 
+                      size="sm" 
+                      onClick={resetScanner}
+                    >
+                      Scan Another QR Code
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Error message */}
+            {error && (
+              <Alert variant="danger" className="mb-3">
+                <Alert.Heading>Error</Alert.Heading>
+                <p>{error}</p>
+                <div className="mt-2">
+                  <Button variant="outline-danger" size="sm" onClick={resetScanner}>
+                    Try Again
+                  </Button>
+                </div>
+              </Alert>
+            )}
+
+            {/* Loading indicator */}
+            {loading && (
+              <div className="text-center p-4">
+                <Spinner animation="border" variant="primary" className="mb-2" />
+                <p>Processing QR code...</p>
+              </div>
+            )}
+          </Card.Body>
+        </Card>
+      ) : (
+        /* Embedded VR Viewer */
+        <Card className="mb-4">
+          <Card.Header className="d-flex justify-content-between align-items-center">
+            <h3 className="mb-0">VR Viewer</h3>
+            <Button 
+              variant="outline-secondary" 
+              size="sm" 
+              onClick={goBackToScanner}
+            >
+              Back to Scanner
+            </Button>
+          </Card.Header>
+          <Card.Body className="p-0">
+            {loading ? (
+              <div className="d-flex flex-column justify-content-center align-items-center p-5">
+                <Spinner animation="border" variant="primary" />
+                <p className="mt-2 mb-4">Loading video...</p>
+                <Button variant="secondary" onClick={switchToSimplePlayer}>
+                  Switch to Simple Player
+                </Button>
+              </div>
+            ) : useSimplePlayer ? (
+              /* Simple Video Player View */
+              <div className="video-container" style={{ height: '70vh' }}>
+                <ReactPlayer
+                  url={videoUrl}
+                  controls
+                  playing
+                  width="100%"
+                  height="100%"
+                  config={{
+                    file: {
+                      attributes: {
+                        crossOrigin: "anonymous",
+                        controlsList: "nodownload",
+                        playsInline: true,
+                        preload: "auto"
+                      }
+                    }
+                  }}
+                />
+              </div>
+            ) : (
+              /* VR Scene for 360 Video */
+              <div className="position-relative" style={{ height: '70vh' }}>
+                {/* Simple mode button */}
+                <div className="position-absolute top-0 end-0 p-2 z-index-1">
+                  <Button variant="light" size="sm" onClick={switchToSimplePlayer}>
+                    Standard Player
+                  </Button>
+                </div>
+                
+                {/* A-Frame scene */}
+                <div style={{ width: '100%', height: '100%' }}>
+                  <a-scene 
+                    ref={vrSceneRef}
+                    embedded
+                    loading-screen="dotsColor: white; backgroundColor: black"
+                    vr-mode-ui="enabled: true"
+                    device-orientation-permission-ui="enabled: true"
+                    onLoaded={handleSceneLoaded}
+                  >
+                    <a-assets>
+                      <video
+                        id="vr-video"
+                        preload="auto"
+                        crossOrigin="anonymous"
+                        playsInline
+                        loop
+                        muted
+                        webkit-playsinline="true"
+                        style={{ display: 'none' }}
+                      ></video>
+                    </a-assets>
+                    
+                    <a-videosphere 
+                      src={`#vr-video`}
+                      rotation="0 -90 0"
+                    ></a-videosphere>
+                    
+                    <a-camera position="0 1.6 0" wasd-controls-enabled="false">
+                      <a-cursor color="#FFFFFF"></a-cursor>
+                    </a-camera>
+                    
+                    {/* Floating play button */}
+                    <a-entity
+                      position="0 1.5 -3"
+                      geometry="primitive: plane; width: 3; height: 1"
+                      material="color: #333; opacity: 0.8"
+                      text="value: Tap here to play video; width: 3; color: white; align: center"
+                      onClick={() => {
+                        const video = document.getElementById('vr-video');
+                        if (video) {
+                          video.muted = false;
+                          if (video.paused) {
+                            video.play().catch(e => {
+                              console.error("Error playing video:", e);
+                              // If we still have issues, switch to simple player
+                              switchToSimplePlayer();
+                            });
+                          }
+                        }
+                      }}
+                    ></a-entity>
+                  </a-scene>
+                </div>
+              </div>
+            )}
+          </Card.Body>
+        </Card>
+      )}
     </div>
   );
 };
