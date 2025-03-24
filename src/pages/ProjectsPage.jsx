@@ -29,8 +29,8 @@ const ProjectsPage = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        // Base path to WebXR samples - ensure this points to the correct location
-        const webXRBasePath = "./webxr-samples-main/";
+        // Path directly to the files without extra prefixing
+        const webXRBasePath = "webxr-samples-main/";
         
         // Demo projects
         const demoProjects = [
@@ -166,11 +166,8 @@ const ProjectsPage = () => {
       setSelectedVideo(project.videoUrl);
       setShowVideoModal(true);
     } else if (project.type === 'ar-experience' && project.pagePath) {
-      // Open in the current window using the complete path
-      const fullPath = project.pagePath.startsWith('/') 
-        ? project.pagePath.substring(1) // Remove leading slash if present
-        : project.pagePath;
-      window.location.href = fullPath;
+      // Use direct access to the file without React Router
+      window.location = project.pagePath;
     } else if (project.model_url) {
       // Handle AR model viewing
       navigate(`/ar-viewer?model=${encodeURIComponent(project.model_url)}`);

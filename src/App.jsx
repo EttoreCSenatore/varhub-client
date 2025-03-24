@@ -41,12 +41,14 @@ function App() {
 // Component to handle redirects to WebXR samples
 function WebXRSampleRedirect() {
   React.useEffect(() => {
-    // Get the current path
-    const currentPath = window.location.pathname;
+    // Get the path from URL and remove any additional /webxr-samples-main/ prefixes
+    const path = window.location.pathname;
     
-    // Remove the leading slash and redirect to the file
-    const fixedPath = currentPath.startsWith('/') ? currentPath.substring(1) : currentPath;
-    window.location.href = fixedPath;
+    // Extract just the filename from the path
+    const filename = path.split('/').pop();
+    
+    // Redirect directly to the file
+    window.location = `webxr-samples-main/${filename}`;
     
     return () => {};
   }, []);
