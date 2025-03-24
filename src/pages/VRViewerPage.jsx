@@ -5,7 +5,14 @@ import ReactPlayer from 'react-player';
 import 'aframe';
 // Import additional A-Frame components for interaction
 import 'aframe-environment-component';
-import { createCorsProxyUrl, setupCorsVideoElement, setupDirectVideoElement, s3CorsConfigInstructions } from '../utils/cors-proxy';
+import { 
+  createCorsProxyUrl, 
+  setupCorsVideoElement, 
+  setupDirectVideoElement, 
+  tryNextCorsProxy,
+  createLocalVideoUrl,
+  s3CorsConfigInstructions 
+} from '../utils/cors-proxy';
 import { 
   isWebXRSupported, 
   isImmersiveVRSupported, 
@@ -106,12 +113,15 @@ if (typeof window !== 'undefined') {
 const VRViewerPage = () => {
   const [videoUrl, setVideoUrl] = useState('');
   const [proxyUrl, setProxyUrl] = useState('');
+  const [localVideoUrl, setLocalVideoUrl] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [useSimplePlayer, setUseSimplePlayer] = useState(false);
   const [corsError, setCorsError] = useState(false);
   const [showControllerHelp, setShowControllerHelp] = useState(true);
   const [vrSupported, setVrSupported] = useState(true);
+  const [currentProxyIndex, setCurrentProxyIndex] = useState(0);
+  const [isDownloadingVideo, setIsDownloadingVideo] = useState(false);
   const location = useLocation();
   const vrSceneRef = useRef(null);
   const videoElementRef = useRef(null);
@@ -143,6 +153,9 @@ const VRViewerPage = () => {
         if (proxiedUrl !== decodedUrl) {
           console.log("Generated proxy URL:", proxiedUrl);
           setProxyUrl(proxiedUrl);
+          
+          // Also try to download the video for local playback
+          handleLocalVideoDownload(decodedUrl);
         }
         
         // Set a timeout to automatically switch to simple player if VR mode takes too long
@@ -152,7 +165,7 @@ const VRViewerPage = () => {
             setUseSimplePlayer(true);
             setLoading(false);
           }
-        }, 10000); // Increased to 10 seconds
+        }, 15000); // Increased to 15 seconds to allow for video download
         
         return () => clearTimeout(timer);
       } catch (err) {
@@ -165,6 +178,49 @@ const VRViewerPage = () => {
       setLoading(false);
     }
   }, [location.search, loading]);
+
+  // Try to download video for local playback
+  const handleLocalVideoDownload = async (url) => {
+    if (!url) return;
+    
+    setIsDownloadingVideo(true);
+    console.log("Attempting to download video for local playback");
+    
+    try {
+      const localUrl = await createLocalVideoUrl(url);
+      if (localUrl) {
+        console.log("Successfully created local video URL");
+        setLocalVideoUrl(localUrl);
+      }
+    } catch (err) {
+      console.error("Failed to download video:", err);
+    } finally {
+      setIsDownloadingVideo(false);
+    }
+  };
+
+  // Try next proxy when the current one fails
+  const handleProxyError = () => {
+    if (currentProxyIndex < 4) { // We have 5 proxies (0-4)
+      const nextIndex = currentProxyIndex + 1;
+      const nextProxyUrl = tryNextCorsProxy(videoUrl, currentProxyIndex);
+      
+      console.log(`Switching to proxy #${nextIndex}: ${nextProxyUrl}`);
+      setCurrentProxyIndex(nextIndex);
+      setProxyUrl(nextProxyUrl);
+      
+      // Update video with new proxy
+      if (videoElementRef.current) {
+        setupCorsVideoElement(videoElementRef.current, videoUrl, nextIndex);
+      }
+      
+      return true;
+    }
+    
+    // If we've tried all proxies, set CORS error
+    setCorsError(true);
+    return false;
+  };
 
   // Hide controller help after a delay
   useEffect(() => {
@@ -190,9 +246,13 @@ const VRViewerPage = () => {
   // Handle video element error
   const handleVideoError = (event) => {
     console.error("Video error:", event);
-    setCorsError(true);
-    // Auto-switch to simple player on video error
-    switchToSimplePlayer();
+    
+    // Try next proxy before giving up
+    if (!handleProxyError()) {
+      setCorsError(true);
+      // Auto-switch to simple player on video error
+      switchToSimplePlayer();
+    }
   };
   
   // Function to try different methods of loading the video
@@ -207,22 +267,33 @@ const VRViewerPage = () => {
     // Add error listener
     videoEl.addEventListener('error', handleVideoError);
     
-    // Try direct approach first (for properly configured S3 buckets)
-    try {
-      console.log("Approach 1: Direct loading with CORS headers");
-      setupDirectVideoElement(videoEl, videoUrl);
-      
-      // Then try with a proxied URL if we have it
-      setTimeout(() => {
-        if (videoEl.networkState === 3 && proxyUrl) { // NETWORK_NO_SOURCE
-          console.log("Direct loading failed, trying proxy approach");
-          setupCorsVideoElement(videoEl, videoUrl);
+    // Try approaches in order:
+    // 1. Local blob URL if available (most reliable)
+    // 2. Direct approach with CORS headers
+    // 3. Proxy approach
+    
+    if (localVideoUrl) {
+      console.log("Approach 1: Using locally downloaded video");
+      videoEl.src = localVideoUrl;
+      videoEl.load();
+    } else {
+      // Try direct approach first
+      try {
+        console.log("Approach 2: Direct loading with CORS headers");
+        setupDirectVideoElement(videoEl, videoUrl);
+        
+        // If direct fails after a short delay, try proxy
+        setTimeout(() => {
+          if (videoEl.networkState === 3) { // NETWORK_NO_SOURCE
+            console.log("Direct loading failed, trying proxy approach");
+            setupCorsVideoElement(videoEl, videoUrl, currentProxyIndex);
+          }
+        }, 3000);
+      } catch (e) {
+        console.error("Error setting up video element:", e);
+        if (proxyUrl) {
+          setupCorsVideoElement(videoEl, videoUrl, currentProxyIndex);
         }
-      }, 3000);
-    } catch (e) {
-      console.error("Error setting up video element:", e);
-      if (proxyUrl) {
-        setupCorsVideoElement(videoEl, videoUrl);
       }
     }
   };
@@ -284,12 +355,35 @@ const VRViewerPage = () => {
     }, 1000);
   };
 
+  // Try next CORS proxy
+  const handleTryNextProxy = () => {
+    if (handleProxyError()) {
+      // If we switched to a new proxy successfully, reload the current view
+      if (useSimplePlayer) {
+        // For simple player, just toggle and come back
+        setUseSimplePlayer(false);
+        setTimeout(() => setUseSimplePlayer(true), 100);
+      } else {
+        // For VR scene, reload scene
+        const scene = document.querySelector('a-scene');
+        if (scene) {
+          const videoEl = document.getElementById('vr-video');
+          if (videoEl) {
+            tryLoadingWithVariousApproaches(videoEl);
+          }
+        }
+      }
+    }
+  };
+
   return (
     <Container fluid className="p-0 m-0 vh-100 position-relative">
       {loading ? (
         <div className="d-flex flex-column justify-content-center align-items-center vh-100">
           <Spinner animation="border" variant="primary" />
-          <p className="mt-2 mb-4">Loading video...</p>
+          <p className="mt-2 mb-4">
+            {isDownloadingVideo ? "Downloading video for local playback..." : "Loading video..."}
+          </p>
           <Button variant="secondary" onClick={switchToSimplePlayer}>
             Switch to Simple Player
           </Button>
@@ -329,6 +423,16 @@ const VRViewerPage = () => {
                 The video cannot be accessed due to cross-origin restrictions. 
                 The S3 bucket needs to be configured to allow access from this website.
               </p>
+              <div className="d-flex justify-content-end">
+                <Button 
+                  variant="outline-secondary" 
+                  size="sm" 
+                  onClick={handleTryNextProxy}
+                  className="me-2"
+                >
+                  Try Different CORS Proxy
+                </Button>
+              </div>
               <hr />
               <p className="mb-0">
                 <strong>S3 Bucket Owner:</strong> Please add the following CORS configuration to your bucket:
@@ -339,7 +443,7 @@ const VRViewerPage = () => {
           
           <div className="flex-grow-1 bg-black d-flex align-items-center justify-content-center">
             <ReactPlayer
-              url={videoUrl} // Use direct URL for ReactPlayer
+              url={localVideoUrl || proxyUrl || videoUrl} // Try local URL first, then proxy, then original
               controls
               playing
               width="100%"
@@ -356,7 +460,10 @@ const VRViewerPage = () => {
               }}
               onError={(e) => {
                 console.error("ReactPlayer error:", e);
-                setCorsError(true);
+                // Try next proxy
+                if (!handleProxyError()) {
+                  setCorsError(true);
+                }
               }}
             />
           </div>
@@ -370,9 +477,21 @@ const VRViewerPage = () => {
             <Button variant="outline-light" size="sm" onClick={goBack}>
               Back to Projects
             </Button>
-            <Button variant="outline-light" size="sm" onClick={switchToSimplePlayer}>
-              Standard Player
-            </Button>
+            <div>
+              {corsError && (
+                <Button 
+                  variant="outline-warning" 
+                  size="sm" 
+                  onClick={handleTryNextProxy}
+                  className="me-2"
+                >
+                  Try Different CORS Proxy
+                </Button>
+              )}
+              <Button variant="outline-light" size="sm" onClick={switchToSimplePlayer}>
+                Standard Player
+              </Button>
+            </div>
           </div>
           
           {/* Controller help overlay */}
@@ -386,6 +505,14 @@ const VRViewerPage = () => {
                 <li>Tap video sphere to start playback</li>
                 <li>Use laser pointer to interact with objects</li>
               </ul>
+            </div>
+          )}
+          
+          {/* CORS error message in VR view */}
+          {corsError && (
+            <div className="position-absolute bottom-0 start-50 translate-middle-x p-2 mb-2"
+                style={{ zIndex: 98, backgroundColor: 'rgba(255,193,7,0.8)', borderRadius: '5px', maxWidth: '80%' }}>
+              <p className="text-dark mb-1"><small><strong>CORS Issue:</strong> Using proxy to access video. Performance may be affected.</small></p>
             </div>
           )}
           
