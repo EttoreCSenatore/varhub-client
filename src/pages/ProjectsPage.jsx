@@ -199,14 +199,33 @@ const ProjectsPage = () => {
     if (project.type === '360-video' && project.videoUrl) {
       setSelectedVideo(project.videoUrl);
       setShowVideoModal(true);
-    } else if (project.type === 'ar-experience' && project.pagePath) {
-      // Fix the path to ensure it's correctly pointing to the root directory
-      const absolutePath = window.location.origin + '/' + project.pagePath;
-      window.open(absolutePath, '_blank');
+    } else if ((project.type === 'ar-experience' || project.type === 'vr-experience') && project.pagePath) {
+      // Ensure the polyfill is loaded before opening the WebXR experience
+      if (!polyfillLoaded.current) {
+        loadWebXRPolyfill()
+          .then(() => {
+            polyfillLoaded.current = true;
+            openWebXRExperience(project);
+          })
+          .catch(error => {
+            console.error('Error loading WebXR polyfill:', error);
+            // Open the experience anyway, the page might handle loading the polyfill
+            openWebXRExperience(project);
+          });
+      } else {
+        openWebXRExperience(project);
+      }
     } else if (project.model_url) {
       // Handle AR model viewing
       navigate(`/ar-viewer?model=${encodeURIComponent(project.model_url)}`);
     }
+  };
+
+  // Helper function to open WebXR experiences
+  const openWebXRExperience = (project) => {
+    // Include the polyfill query parameter to explicitly enable it
+    const absolutePath = `${window.location.origin}/${project.pagePath}?usePolyfill=true`;
+    window.open(absolutePath, '_blank');
   };
 
   // Close video modal
@@ -251,7 +270,8 @@ const ProjectsPage = () => {
                     onClick={() => openProject(project)}
                   >
                     {project.type === '360-video' ? 'Watch Video' : 
-                     project.type === 'ar-experience' ? 'Launch Experience' : 'View in AR'}
+                     project.type === 'ar-experience' ? 'Launch AR Experience' : 
+                     project.type === 'vr-experience' ? 'Launch VR Experience' : 'View in AR'}
                   </Button>
                 </Card.Footer>
               </Card>
