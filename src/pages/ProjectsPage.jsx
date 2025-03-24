@@ -29,7 +29,7 @@ const ProjectsPage = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        // Path directly to the files without extra prefixing
+        // Absolute path to webxr samples
         const webXRBasePath = "webxr-samples-main/";
         
         // Demo projects
@@ -166,8 +166,8 @@ const ProjectsPage = () => {
       setSelectedVideo(project.videoUrl);
       setShowVideoModal(true);
     } else if (project.type === 'ar-experience' && project.pagePath) {
-      // Use direct access to the file without React Router
-      window.location = project.pagePath;
+      // Direct approach - go straight to the file
+      window.location.href = `/${project.pagePath}`;
     } else if (project.model_url) {
       // Handle AR model viewing
       navigate(`/ar-viewer?model=${encodeURIComponent(project.model_url)}`);
