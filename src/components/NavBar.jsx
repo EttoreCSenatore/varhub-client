@@ -55,14 +55,6 @@ const NavBar = () => {
             >
               Projects
             </Nav.Link>
-            <Nav.Link 
-              as={Link} 
-              to="/vr-viewer" 
-              active={isActive('/vr-viewer')}
-              onClick={() => setExpanded(false)}
-            >
-              VR Viewer
-            </Nav.Link>
           </Nav>
           <Nav>
             <Button 

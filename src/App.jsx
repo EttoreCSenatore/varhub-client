@@ -3,7 +3,6 @@ import { Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage.jsx';  
 import ProjectsPage from './pages/ProjectsPage.jsx'; 
 import QRScannerPage from './pages/QRScannerPage.jsx';
-import VRViewerPage from './pages/VRViewerPage.jsx';
 import NavBar from './components/NavBar';  
 import Footer from './components/Footer';  
 import { useAuth } from './context/AuthContext';
@@ -30,7 +29,6 @@ function App() {
               } 
             />
             <Route path="/scan" element={<QRScannerPage />} />
-            <Route path="/vr-viewer" element={<VRViewerPage />} />
           </Routes>  
         </div>  
       </main>  

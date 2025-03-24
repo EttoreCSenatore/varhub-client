@@ -1,11 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Spinner } from 'react-bootstrap';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
+import { Container, Row, Col, Card, Button, Spinner, ButtonGroup, Modal } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
+
+// Use lazy loading for ReactPlayer to prevent 404 errors with chunked files
+const ReactPlayer = lazy(() => import('react-player/lazy'));
 
 const ProjectsPage = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [showVideoModal, setShowVideoModal] = useState(false);
   const { currentUser } = useAuth();
 
   useEffect(() => {
@@ -47,14 +52,21 @@ const ProjectsPage = () => {
     fetchProjects();
   }, [currentUser]);
 
-  // Function to open a project's VR experience
-  const openVRExperience = (project) => {
+  // Function to open a project's video directly in a modal
+  const openVideoPlayer = (project) => {
     if (project.type === '360-video' && project.videoUrl) {
-      window.location.href = `/vr-viewer?video=${encodeURIComponent(project.videoUrl)}`;
+      setSelectedVideo(project.videoUrl);
+      setShowVideoModal(true);
     } else if (project.model_url) {
       // Handle AR model viewing
       window.location.href = `/ar-viewer?model=${encodeURIComponent(project.model_url)}`;
     }
+  };
+
+  // Close video modal
+  const handleCloseModal = () => {
+    setShowVideoModal(false);
+    setSelectedVideo(null);
   };
 
   return (
@@ -87,19 +99,73 @@ const ProjectsPage = () => {
                   <Card.Text>{project.description}</Card.Text>
                 </Card.Body>
                 <Card.Footer className="bg-white border-0">
-                  <Button 
-                    variant="primary" 
-                    className="w-100" 
-                    onClick={() => openVRExperience(project)}
-                  >
-                    View in VR
-                  </Button>
+                  {project.type === '360-video' ? (
+                    <Button 
+                      variant="primary" 
+                      className="w-100" 
+                      onClick={() => openVideoPlayer(project)}
+                    >
+                      Watch Video
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="primary" 
+                      className="w-100" 
+                      onClick={() => openVideoPlayer(project)}
+                    >
+                      View in AR
+                    </Button>
+                  )}
                 </Card.Footer>
               </Card>
             </Col>
           ))}
         </Row>
       )}
+
+      {/* Video Player Modal */}
+      <Modal 
+        show={showVideoModal} 
+        onHide={handleCloseModal} 
+        size="xl" 
+        centered
+        contentClassName="bg-dark"
+      >
+        <Modal.Header closeButton closeVariant="white" className="border-0 text-white">
+          <Modal.Title>Video Player</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="p-0">
+          {selectedVideo && (
+            <div style={{ height: '70vh' }}>
+              <Suspense fallback={<div className="d-flex justify-content-center align-items-center h-100 text-white">
+                <Spinner animation="border" />
+                <span className="ms-2">Loading video player...</span>
+              </div>}>
+                <ReactPlayer
+                  url={selectedVideo}
+                  controls
+                  playing
+                  width="100%"
+                  height="100%"
+                  config={{
+                    file: {
+                      attributes: {
+                        crossOrigin: "anonymous",
+                        controlsList: "nodownload",
+                        playsInline: true,
+                        preload: "auto"
+                      }
+                    }
+                  }}
+                  onError={(e) => {
+                    console.error("Video playback error:", e);
+                  }}
+                />
+              </Suspense>
+            </div>
+          )}
+        </Modal.Body>
+      </Modal>
     </Container>
   );
 };
