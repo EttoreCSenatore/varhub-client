@@ -63,8 +63,8 @@ const ProjectsPage = () => {
 
     const fetchProjects = async () => {
       try {
-        // Absolute path to webxr samples
-        const webXRBasePath = "webxr-samples-main/";
+        // Base path for official WebXR samples
+        const webXRBasePath = "https://immersive-web.github.io/webxr-samples/";
         
         // Demo projects
         const demoProjects = [
@@ -223,9 +223,8 @@ const ProjectsPage = () => {
 
   // Helper function to open WebXR experiences
   const openWebXRExperience = (project) => {
-    // Include the polyfill query parameter to explicitly enable it
-    const absolutePath = `${window.location.origin}/${project.pagePath}?usePolyfill=true`;
-    window.open(absolutePath, '_blank');
+    // Direct link to the official WebXR samples
+    window.open(project.pagePath, '_blank');
   };
 
   // Close video modal
