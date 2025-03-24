@@ -16,30 +16,41 @@ const ProjectsPage = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        // First, add our demo VR House Tour project
-        const demoProjects = [{
-          id: "vr-house-tour",
-          title: "VR House Tour",
-          description: "Experience a virtual reality tour of a modern house in 360°",
-          thumbnail: "https://via.placeholder.com/300x200?text=VR+House+Tour",
-          videoUrl: "https://varhub-videos.s3.us-east-2.amazonaws.com/project-alpha-360.mp4",
-          type: "360-video",
-          createdAt: new Date().toISOString()
-        }];
+        // Demo projects
+        const demoProjects = [
+          {
+            id: "vr-house-tour",
+            title: "VR House Tour",
+            description: "Experience a virtual reality tour of a modern house in 360°",
+            thumbnail: "https://via.placeholder.com/300x200?text=VR+House+Tour",
+            videoUrl: "https://varhub-videos.s3.us-east-2.amazonaws.com/project-alpha-360.mp4",
+            type: "360-video",
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: "immersive-ar-session",
+            title: "Immersive AR Session",
+            description: "Demonstrates use of an \"immersive-ar\" XRSession to present a WebGL scene on an AR-enabled phone or headset.",
+            thumbnail: "https://via.placeholder.com/300x200?text=AR+Session",
+            pagePath: "./project1.html",
+            type: "ar-experience",
+            createdAt: new Date().toISOString()
+          }
+        ];
         
         // Then, try to fetch projects from API if user is logged in
         if (currentUser) {
           try {
             const response = await api.get('/api/projects');
-            // Combine demo project with fetched projects
+            // Combine demo projects with fetched projects
             setProjects([...demoProjects, ...response.data]);
           } catch (error) {
             console.error('Error fetching projects:', error);
-            // If API fails, just use demo project
+            // If API fails, just use demo projects
             setProjects(demoProjects);
           }
         } else {
-          // If not logged in, just use demo project
+          // If not logged in, just use demo projects
           setProjects(demoProjects);
         }
       } catch (error) {
@@ -52,11 +63,14 @@ const ProjectsPage = () => {
     fetchProjects();
   }, [currentUser]);
 
-  // Function to open a project's video directly in a modal
-  const openVideoPlayer = (project) => {
+  // Function to open a project
+  const openProject = (project) => {
     if (project.type === '360-video' && project.videoUrl) {
       setSelectedVideo(project.videoUrl);
       setShowVideoModal(true);
+    } else if (project.type === 'ar-experience' && project.pagePath) {
+      // Navigate to the AR experience page
+      window.location.href = project.pagePath;
     } else if (project.model_url) {
       // Handle AR model viewing
       window.location.href = `/ar-viewer?model=${encodeURIComponent(project.model_url)}`;
@@ -71,7 +85,7 @@ const ProjectsPage = () => {
 
   return (
     <Container className="py-4">
-      <h2 className="mb-4">My VR Projects</h2>
+      <h2 className="mb-4">My VR/AR Projects</h2>
       
       {loading ? (
         <div className="text-center p-5">
@@ -99,23 +113,14 @@ const ProjectsPage = () => {
                   <Card.Text>{project.description}</Card.Text>
                 </Card.Body>
                 <Card.Footer className="bg-white border-0">
-                  {project.type === '360-video' ? (
-                    <Button 
-                      variant="primary" 
-                      className="w-100" 
-                      onClick={() => openVideoPlayer(project)}
-                    >
-                      Watch Video
-                    </Button>
-                  ) : (
-                    <Button 
-                      variant="primary" 
-                      className="w-100" 
-                      onClick={() => openVideoPlayer(project)}
-                    >
-                      View in AR
-                    </Button>
-                  )}
+                  <Button 
+                    variant="primary" 
+                    className="w-100" 
+                    onClick={() => openProject(project)}
+                  >
+                    {project.type === '360-video' ? 'Watch Video' : 
+                     project.type === 'ar-experience' ? 'Launch AR Experience' : 'View in AR'}
+                  </Button>
                 </Card.Footer>
               </Card>
             </Col>
