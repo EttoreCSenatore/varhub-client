@@ -19,10 +19,10 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -->
-<html>
+<html lang="en">
   <head>
     <meta charset='utf-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=no'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
     <meta name='mobile-web-app-capable' content='yes'>
     <meta name='apple-mobile-web-app-capable' content='yes'>
     <link rel='icon' type='image/png' sizes='32x32' href='favicon-32x32.png'>
@@ -40,9 +40,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           <a class="back" href="./">Back</a>
           <br/>
           <hr/>
-          Autoplay when VR starts: <input id='autoplayVideo' type='checkbox'/>
+          <label for="autoplayVideo">Autoplay when VR starts:</label> <input id='autoplayVideo' type='checkbox' aria-label="Autoplay when VR starts"/>
         </p>
-      </summary>
+      </details>
     </header>
     <script type="module">
       import {WebXRButton} from './js/util/webxr-button.js';
@@ -265,3 +265,4 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     </script>
   </body>
 </html>
+

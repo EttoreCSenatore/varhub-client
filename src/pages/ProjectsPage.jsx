@@ -2,9 +2,13 @@ import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Container, Row, Col, Card, Button, Spinner, ButtonGroup, Modal } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
+import { useNavigate } from 'react-router-dom';
 
 // Use lazy loading for ReactPlayer to prevent 404 errors with chunked files
 const ReactPlayer = lazy(() => import('react-player/lazy'));
+
+// Local placeholder image path
+const PLACEHOLDER_IMAGE = '/images/placeholder.svg';
 
 const ProjectsPage = () => {
   const [projects, setProjects] = useState([]);
@@ -12,12 +16,13 @@ const ProjectsPage = () => {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        // Base path to WebXR samples
-        const webXRBasePath = "./webxr-samples-main/";
+        // Base path to WebXR samples - note we're keeping the relative path format
+        const webXRBasePath = "/webxr-samples-main/";
         
         // Demo projects
         const demoProjects = [
@@ -25,7 +30,7 @@ const ProjectsPage = () => {
             id: "vr-house-tour",
             title: "VR House Tour",
             description: "Experience a virtual reality tour of a modern house in 360°",
-            thumbnail: "https://via.placeholder.com/300x200?text=VR+House+Tour",
+            thumbnail: PLACEHOLDER_IMAGE,
             videoUrl: "https://varhub-videos.s3.us-east-2.amazonaws.com/project-alpha-360.mp4",
             type: "360-video",
             createdAt: new Date().toISOString()
@@ -34,7 +39,7 @@ const ProjectsPage = () => {
             id: "immersive-ar-session",
             title: "Immersive AR Session",
             description: "Demonstrates how to use an 'immersive-ar' XRSession to present a simple WebGL scene to a transparent or passthrough XR device.",
-            thumbnail: "https://via.placeholder.com/300x200?text=AR+Session",
+            thumbnail: PLACEHOLDER_IMAGE,
             pagePath: webXRBasePath + "immersive-ar-session.html",
             type: "ar-experience",
             createdAt: new Date().toISOString()
@@ -43,7 +48,7 @@ const ProjectsPage = () => {
             id: "immersive-vr-session",
             title: "Immersive VR Session",
             description: "Demonstrates how to use an 'immersive-vr' XRSession to present a simple WebGL scene to an XR device.",
-            thumbnail: "https://via.placeholder.com/300x200?text=VR+Session",
+            thumbnail: PLACEHOLDER_IMAGE,
             pagePath: webXRBasePath + "immersive-vr-session.html",
             type: "ar-experience",
             createdAt: new Date().toISOString()
@@ -52,7 +57,7 @@ const ProjectsPage = () => {
             id: "input-tracking",
             title: "Input Tracking",
             description: "Demonstrates basic tracking and rendering of XRInputSources. It does not respond to button presses or other controller interactions.",
-            thumbnail: "https://via.placeholder.com/300x200?text=Input+Tracking",
+            thumbnail: PLACEHOLDER_IMAGE,
             pagePath: webXRBasePath + "input-tracking.html",
             type: "ar-experience",
             createdAt: new Date().toISOString()
@@ -61,7 +66,7 @@ const ProjectsPage = () => {
             id: "hit-test",
             title: "Hit Test",
             description: "Demonstrates the use of hit testing to place virtual objects on real-world surfaces.",
-            thumbnail: "https://via.placeholder.com/300x200?text=Hit+Test",
+            thumbnail: PLACEHOLDER_IMAGE,
             pagePath: webXRBasePath + "hit-test.html",
             type: "ar-experience",
             createdAt: new Date().toISOString()
@@ -70,7 +75,7 @@ const ProjectsPage = () => {
             id: "anchors",
             title: "Anchors",
             description: "Demonstrates the use of anchors to place virtual objects in stable, real-world locations.",
-            thumbnail: "https://via.placeholder.com/300x200?text=Anchors",
+            thumbnail: PLACEHOLDER_IMAGE,
             pagePath: webXRBasePath + "anchors.html",
             type: "ar-experience",
             createdAt: new Date().toISOString()
@@ -79,7 +84,7 @@ const ProjectsPage = () => {
             id: "immersive-hands",
             title: "Immersive VR with Hands",
             description: "Demonstrates a simple VR session that shows the user's hands using a set of cubes representing joints in your hand.",
-            thumbnail: "https://via.placeholder.com/300x200?text=VR+Hands",
+            thumbnail: PLACEHOLDER_IMAGE,
             pagePath: webXRBasePath + "immersive-hands.html",
             type: "ar-experience",
             createdAt: new Date().toISOString()
@@ -88,7 +93,7 @@ const ProjectsPage = () => {
             id: "360-photos",
             title: "360 Photos",
             description: "Displays a 360 degree equirectangular stereo photo. It intentionally suppresses view position to ensure that the user cannot move out of the photo sphere.",
-            thumbnail: "https://via.placeholder.com/300x200?text=360+Photos",
+            thumbnail: PLACEHOLDER_IMAGE,
             pagePath: webXRBasePath + "360-photos.html",
             type: "ar-experience",
             createdAt: new Date().toISOString()
@@ -97,7 +102,7 @@ const ProjectsPage = () => {
             id: "stereo-video",
             title: "Stereo Video Player",
             description: "Demonstrates how to play a stereo 3D video in a VR environment.",
-            thumbnail: "https://via.placeholder.com/300x200?text=Stereo+Video",
+            thumbnail: PLACEHOLDER_IMAGE,
             pagePath: webXRBasePath + "stereo-video.html",
             type: "ar-experience",
             createdAt: new Date().toISOString()
@@ -106,8 +111,17 @@ const ProjectsPage = () => {
             id: "input-selection",
             title: "Input Selection",
             description: "Demonstrates handling 'select' events generated by XRInputSources to create clickable objects in the scene.",
-            thumbnail: "https://via.placeholder.com/300x200?text=Input+Selection",
+            thumbnail: PLACEHOLDER_IMAGE,
             pagePath: webXRBasePath + "input-selection.html",
+            type: "ar-experience",
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: "vr-barebones",
+            title: "VR Barebones",
+            description: "A minimal WebXR VR experience with no extra features.",
+            thumbnail: PLACEHOLDER_IMAGE,
+            pagePath: webXRBasePath + "vr-barebones.html",
             type: "ar-experience",
             createdAt: new Date().toISOString()
           }
@@ -144,11 +158,11 @@ const ProjectsPage = () => {
       setSelectedVideo(project.videoUrl);
       setShowVideoModal(true);
     } else if (project.type === 'ar-experience' && project.pagePath) {
-      // Navigate to the AR experience page
-      window.location.href = project.pagePath;
+      // Use React Router navigation for WebXR samples
+      navigate(project.pagePath);
     } else if (project.model_url) {
       // Handle AR model viewing
-      window.location.href = `/ar-viewer?model=${encodeURIComponent(project.model_url)}`;
+      navigate(`/ar-viewer?model=${encodeURIComponent(project.model_url)}`);
     }
   };
 
@@ -179,7 +193,7 @@ const ProjectsPage = () => {
               <Card className="h-100 shadow-sm">
                 <Card.Img 
                   variant="top" 
-                  src={project.thumbnail || "https://via.placeholder.com/300x200?text=Project"} 
+                  src={project.thumbnail || PLACEHOLDER_IMAGE} 
                   alt={project.title}
                   style={{ height: '180px', objectFit: 'cover' }}
                 />

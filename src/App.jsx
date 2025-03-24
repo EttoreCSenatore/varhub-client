@@ -29,12 +29,30 @@ function App() {
               } 
             />
             <Route path="/scan" element={<QRScannerPage />} />
+            <Route path="/webxr-samples-main/*" element={<WebXRSampleRedirect />} />
           </Routes>  
         </div>  
       </main>  
       <Footer />
     </div>  
   );  
+}
+
+// Component to handle redirects to WebXR samples
+function WebXRSampleRedirect() {
+  React.useEffect(() => {
+    // Get the current path without the leading slash
+    const currentPath = window.location.pathname;
+    
+    // Redirect to the actual sample file
+    window.location.href = `.${currentPath}`;
+  }, []);
+  
+  return (
+    <div className="text-center py-5">
+      <p>Redirecting to WebXR sample...</p>
+    </div>
+  );
 }
 
 export default App;  
