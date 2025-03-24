@@ -3,7 +3,105 @@ import { useLocation } from 'react-router-dom';
 import { Container, Alert, Spinner, Button } from 'react-bootstrap';
 import ReactPlayer from 'react-player';
 import 'aframe';
-import { createCorsProxyUrl, setupCorsVideoElement } from '../utils/cors-proxy';
+// Import additional A-Frame components for interaction
+import 'aframe-environment-component';
+import { createCorsProxyUrl, setupCorsVideoElement, setupDirectVideoElement, s3CorsConfigInstructions } from '../utils/cors-proxy';
+import { 
+  isWebXRSupported, 
+  isImmersiveVRSupported, 
+  createInteractiveObject, 
+  createTextPanel,
+  initializeControllers
+} from '../utils/webxr-utils';
+
+// Register a custom component for controller interaction
+if (typeof window !== 'undefined') {
+  window.AFRAME.registerComponent('controller-interaction', {
+    init: function() {
+      this.el.addEventListener('gripdown', this.onGripDown.bind(this));
+      this.el.addEventListener('gripup', this.onGripUp.bind(this));
+      this.el.addEventListener('thumbstickmoved', this.onThumbstickMoved.bind(this));
+      
+      // Set up initial state
+      this.isGrabbing = false;
+      this.originalPosition = new window.THREE.Vector3();
+      this.originalScale = new window.THREE.Vector3();
+    },
+    
+    onGripDown: function(evt) {
+      const intersectedEls = document.querySelectorAll('[data-interactive]');
+      for (let el of intersectedEls) {
+        const distance = this.el.object3D.position.distanceTo(el.object3D.position);
+        if (distance < 1.5) {
+          this.isGrabbing = true;
+          this.grabbedEl = el;
+          this.originalPosition.copy(el.object3D.position);
+          this.originalScale.copy(el.object3D.scale);
+          el.setAttribute('material', 'color', '#ffcc00');
+        }
+      }
+    },
+    
+    onGripUp: function() {
+      if (this.isGrabbing && this.grabbedEl) {
+        this.isGrabbing = false;
+        this.grabbedEl.setAttribute('material', 'color', '#ffffff');
+        this.grabbedEl = null;
+      }
+    },
+    
+    onThumbstickMoved: function(evt) {
+      if (this.isGrabbing && this.grabbedEl) {
+        // Scale object based on thumbstick y-axis
+        const scaleFactor = 1 + (evt.detail.y * 0.1);
+        const newScale = this.originalScale.clone().multiplyScalar(scaleFactor);
+        this.grabbedEl.object3D.scale.copy(newScale);
+      }
+    }
+  });
+  
+  // Register a component for video control
+  window.AFRAME.registerComponent('video-controls', {
+    init: function() {
+      this.videoEl = document.getElementById('vr-video');
+      if (!this.videoEl) return;
+      
+      // Add event listeners for buttons
+      this.el.addEventListener('click', this.togglePlay.bind(this));
+      
+      // Create UI elements
+      this.createUIElements();
+    },
+    
+    createUIElements: function() {
+      // Create play/pause button
+      const playButton = document.createElement('a-entity');
+      playButton.setAttribute('geometry', 'primitive: plane; width: 0.5; height: 0.5');
+      playButton.setAttribute('material', 'color: #333; opacity: 0.8');
+      playButton.setAttribute('position', '0 0 0.01');
+      playButton.setAttribute('text', 'value: ▶; width: 2; color: white; align: center');
+      playButton.setAttribute('class', 'play-button');
+      
+      this.el.appendChild(playButton);
+      this.playButton = playButton;
+    },
+    
+    togglePlay: function() {
+      if (!this.videoEl) return;
+      
+      if (this.videoEl.paused) {
+        this.videoEl.play().then(() => {
+          this.playButton.setAttribute('text', 'value: ⏸');
+        }).catch(err => {
+          console.error('Error playing video:', err);
+        });
+      } else {
+        this.videoEl.pause();
+        this.playButton.setAttribute('text', 'value: ▶');
+      }
+    }
+  });
+}
 
 const VRViewerPage = () => {
   const [videoUrl, setVideoUrl] = useState('');
@@ -11,8 +109,23 @@ const VRViewerPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [useSimplePlayer, setUseSimplePlayer] = useState(false);
+  const [corsError, setCorsError] = useState(false);
+  const [showControllerHelp, setShowControllerHelp] = useState(true);
+  const [vrSupported, setVrSupported] = useState(true);
   const location = useLocation();
   const vrSceneRef = useRef(null);
+  const videoElementRef = useRef(null);
+  
+  // Check WebXR support on component mount
+  useEffect(() => {
+    const checkXrSupport = async () => {
+      const supported = await isImmersiveVRSupported();
+      setVrSupported(supported);
+      console.log('WebXR VR support:', supported ? 'Yes' : 'No');
+    };
+    
+    checkXrSupport();
+  }, []);
   
   useEffect(() => {
     // Parse URL parameters to get the video URL
@@ -25,10 +138,10 @@ const VRViewerPage = () => {
         console.log("Loading video:", decodedUrl);
         setVideoUrl(decodedUrl);
         
-        // Use our utility to create a proxy URL for S3 URLs
+        // Get a proxied URL for S3 URLs, but don't rely on it completely
         const proxiedUrl = createCorsProxyUrl(decodedUrl);
         if (proxiedUrl !== decodedUrl) {
-          console.log("Using CORS proxy:", proxiedUrl);
+          console.log("Generated proxy URL:", proxiedUrl);
           setProxyUrl(proxiedUrl);
         }
         
@@ -39,7 +152,7 @@ const VRViewerPage = () => {
             setUseSimplePlayer(true);
             setLoading(false);
           }
-        }, 7000); // Increased from 5000 to 7000 ms
+        }, 10000); // Increased to 10 seconds
         
         return () => clearTimeout(timer);
       } catch (err) {
@@ -53,6 +166,16 @@ const VRViewerPage = () => {
     }
   }, [location.search, loading]);
 
+  // Hide controller help after a delay
+  useEffect(() => {
+    if (!loading && !useSimplePlayer) {
+      const timer = setTimeout(() => {
+        setShowControllerHelp(false);
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, useSimplePlayer]);
+
   // Go back to previous page
   const goBack = () => {
     window.history.back();
@@ -64,6 +187,46 @@ const VRViewerPage = () => {
     setLoading(false);
   };
   
+  // Handle video element error
+  const handleVideoError = (event) => {
+    console.error("Video error:", event);
+    setCorsError(true);
+    // Auto-switch to simple player on video error
+    switchToSimplePlayer();
+  };
+  
+  // Function to try different methods of loading the video
+  const tryLoadingWithVariousApproaches = (videoEl) => {
+    if (!videoEl) return;
+    
+    console.log("Trying multiple approaches to load the video");
+    
+    // Store ref for global access
+    videoElementRef.current = videoEl;
+    
+    // Add error listener
+    videoEl.addEventListener('error', handleVideoError);
+    
+    // Try direct approach first (for properly configured S3 buckets)
+    try {
+      console.log("Approach 1: Direct loading with CORS headers");
+      setupDirectVideoElement(videoEl, videoUrl);
+      
+      // Then try with a proxied URL if we have it
+      setTimeout(() => {
+        if (videoEl.networkState === 3 && proxyUrl) { // NETWORK_NO_SOURCE
+          console.log("Direct loading failed, trying proxy approach");
+          setupCorsVideoElement(videoEl, videoUrl);
+        }
+      }, 3000);
+    } catch (e) {
+      console.error("Error setting up video element:", e);
+      if (proxyUrl) {
+        setupCorsVideoElement(videoEl, videoUrl);
+      }
+    }
+  };
+  
   // Once the Aframe scene has loaded
   const handleSceneLoaded = () => {
     setLoading(false);
@@ -73,8 +236,8 @@ const VRViewerPage = () => {
     setTimeout(() => {
       const videoEl = document.getElementById('vr-video');
       if (videoEl) {
-        // Use our utility to set up the video element with CORS handling
-        setupCorsVideoElement(videoEl, videoUrl);
+        // Try multiple approaches for loading the video
+        tryLoadingWithVariousApproaches(videoEl);
         
         // Try to play with fallback for interaction requirement
         videoEl.play().catch(err => {
@@ -82,7 +245,43 @@ const VRViewerPage = () => {
           // We'll rely on the tap button for user to manually start
         });
       }
-    }, 1000); // Longer delay for DOM to be ready
+      
+      // Add interactive objects after the scene loads
+      const scene = document.querySelector('a-scene');
+      if (scene) {
+        // Create interactive objects
+        createInteractiveObject(scene, {
+          position: '-1.5 1.5 -2',
+          color: '#4CC3D9',
+          shape: 'box',
+          size: 0.5
+        });
+        
+        createInteractiveObject(scene, {
+          position: '1.5 1.5 -2',
+          color: '#EF2D5E',
+          shape: 'sphere',
+          size: 0.5
+        });
+        
+        createInteractiveObject(scene, {
+          position: '0 1 -3',
+          color: '#FFC65D',
+          shape: 'cylinder',
+          size: 0.4
+        });
+        
+        // Create controllers
+        initializeControllers(scene);
+        
+        // Add text panel with instructions
+        createTextPanel(scene, 'VR House Tour - Grab objects using controller grip buttons', {
+          position: '0 2.2 -3',
+          width: 4,
+          height: 0.8
+        });
+      }
+    }, 1000);
   };
 
   return (
@@ -94,6 +293,13 @@ const VRViewerPage = () => {
           <Button variant="secondary" onClick={switchToSimplePlayer}>
             Switch to Simple Player
           </Button>
+          
+          {!vrSupported && (
+            <Alert variant="info" className="mt-3">
+              <small>WebXR VR mode not supported in this browser. 
+              Some features may be limited.</small>
+            </Alert>
+          )}
         </div>
       ) : error ? (
         <div className="d-flex flex-column justify-content-center align-items-center vh-100">
@@ -116,9 +322,24 @@ const VRViewerPage = () => {
             <div style={{ width: '50px' }}></div> {/* spacer for flex alignment */}
           </div>
           
+          {corsError && (
+            <Alert variant="warning" className="m-2">
+              <Alert.Heading>CORS Access Issue</Alert.Heading>
+              <p>
+                The video cannot be accessed due to cross-origin restrictions. 
+                The S3 bucket needs to be configured to allow access from this website.
+              </p>
+              <hr />
+              <p className="mb-0">
+                <strong>S3 Bucket Owner:</strong> Please add the following CORS configuration to your bucket:
+              </p>
+              <pre className="bg-light p-2 mt-2" style={{whiteSpace: 'pre-wrap'}}>{s3CorsConfigInstructions}</pre>
+            </Alert>
+          )}
+          
           <div className="flex-grow-1 bg-black d-flex align-items-center justify-content-center">
             <ReactPlayer
-              url={proxyUrl || videoUrl}
+              url={videoUrl} // Use direct URL for ReactPlayer
               controls
               playing
               width="100%"
@@ -132,6 +353,10 @@ const VRViewerPage = () => {
                     preload: "auto"
                   }
                 }
+              }}
+              onError={(e) => {
+                console.error("ReactPlayer error:", e);
+                setCorsError(true);
               }}
             />
           </div>
@@ -149,6 +374,20 @@ const VRViewerPage = () => {
               Standard Player
             </Button>
           </div>
+          
+          {/* Controller help overlay */}
+          {showControllerHelp && (
+            <div className="position-absolute top-50 start-50 translate-middle p-3" 
+                style={{ zIndex: 99, backgroundColor: 'rgba(0,0,0,0.7)', borderRadius: '10px' }}>
+              <h5 className="text-white text-center">VR Controls:</h5>
+              <ul className="text-white mb-0">
+                <li>Use grip button to grab interactive objects</li>
+                <li>Use thumbstick to resize objects</li>
+                <li>Tap video sphere to start playback</li>
+                <li>Use laser pointer to interact with objects</li>
+              </ul>
+            </div>
+          )}
           
           {/* Direct video element for better compatibility with S3 */}
           <div className="vh-100 bg-black d-flex align-items-center justify-content-center">
@@ -171,17 +410,42 @@ const VRViewerPage = () => {
                     muted
                     webkit-playsinline="true"
                     style={{ display: 'none' }}
+                    onError={handleVideoError}
                   ></video>
                 </a-assets>
                 
+                {/* Environment background (subtle) */}
+                <a-entity 
+                  environment="preset: default; 
+                              skyType: gradient; 
+                              skyColor: #111; 
+                              horizonColor: #333;
+                              lighting: minimal; 
+                              shadow: false; 
+                              fog: 0.9;
+                              playArea: 1"
+                ></a-entity>
+                
                 <a-videosphere 
+                  id="video-sphere"
                   src="#vr-video"
                   rotation="0 -90 0"
                 ></a-videosphere>
                 
-                <a-camera position="0 1.6 0" wasd-controls-enabled="false">
+                {/* Camera with cursor for gaze-based interaction */}
+                <a-camera position="0 1.6 0" wasd-controls-enabled="true">
                   <a-cursor color="#FFFFFF"></a-cursor>
                 </a-camera>
+                
+                {/* Video control panel */}
+                <a-entity
+                  position="0 1 -2"
+                  rotation="0 0 0"
+                  geometry="primitive: plane; width: 1; height: 0.5"
+                  material="color: #333; opacity: 0.8"
+                  video-controls
+                  data-interactive="true"
+                ></a-entity>
                 
                 {/* Floating play button for mobile */}
                 <a-entity
@@ -203,6 +467,8 @@ const VRViewerPage = () => {
                     }
                   }}
                 ></a-entity>
+                
+                {/* Note: Additional interactive objects are added programmatically in handleSceneLoaded */}
               </a-scene>
             </div>
           </div>
