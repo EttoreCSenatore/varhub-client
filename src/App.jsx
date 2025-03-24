@@ -44,17 +44,29 @@ function WebXRSampleRedirect() {
     // Get the current path without the leading slash
     const currentPath = window.location.pathname;
     
-    // Use window.open with _self target and proper parameters
-    window.open(`.${currentPath}`, '_self', 'noopener');
+    // Use a more reliable approach with a direct link
+    const linkElement = document.createElement('a');
+    linkElement.href = `.${currentPath}`;
+    linkElement.rel = 'noopener noreferrer';
+    document.body.appendChild(linkElement);
+    linkElement.click();
     
-    // Add a fallback link for users if automatic redirect is blocked
+    // Clean up the element
+    setTimeout(() => {
+      try {
+        document.body.removeChild(linkElement);
+      } catch (e) {
+        console.log('Element already removed');
+      }
+    }, 100);
+    
     return () => {};
   }, []);
   
   return (
     <div className="text-center py-5">
       <p>Redirecting to WebXR sample...</p>
-      <p>If you're not redirected automatically, <a href={`.${window.location.pathname}`} target="_self">click here</a> to open the sample.</p>
+      <p>If you're not redirected automatically, <a href={`.${window.location.pathname}`}>click here</a> to open the sample.</p>
     </div>
   );
 }
