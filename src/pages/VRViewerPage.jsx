@@ -60,13 +60,26 @@ const VRViewerPage = () => {
     setLoading(false);
     console.log("VR Scene loaded");
     
-    // Force play video after scene is loaded
-    const videoEl = document.getElementById('vr-video');
-    if (videoEl) {
-      videoEl.play().catch(err => {
-        console.warn("Could not autoplay video:", err);
-      });
-    }
+    // Make sure video element is properly configured
+    setTimeout(() => {
+      const videoEl = document.getElementById('vr-video');
+      if (videoEl) {
+        // Set src both ways for better compatibility
+        if (videoUrl) {
+          videoEl.src = videoUrl;
+          videoEl.setAttribute('src', videoUrl);
+        }
+        
+        // Make sure CORS is properly handled
+        videoEl.crossOrigin = "anonymous";
+        
+        // Try to play with fallback for interaction requirement
+        videoEl.play().catch(err => {
+          console.warn("Could not autoplay video:", err);
+          // We'll rely on the tap button for user to manually start
+        });
+      }
+    }, 500); // Short delay for DOM to be ready
   };
 
   return (
@@ -148,13 +161,12 @@ const VRViewerPage = () => {
                 <a-assets>
                   <video
                     id="vr-video"
-                    src={videoUrl}
-                    autoPlay
-                    loop
+                    preload="auto"
                     crossOrigin="anonymous"
                     playsInline
+                    loop
                     muted
-                    preload="auto"
+                    webkit-playsinline="true"
                     style={{ display: 'none' }}
                   ></video>
                 </a-assets>
@@ -162,7 +174,6 @@ const VRViewerPage = () => {
                 <a-videosphere 
                   src="#vr-video"
                   rotation="0 -90 0"
-                  play-on-click
                 ></a-videosphere>
                 
                 <a-camera position="0 1.6 0" wasd-controls-enabled="false">
@@ -179,7 +190,13 @@ const VRViewerPage = () => {
                     const video = document.getElementById('vr-video');
                     if (video) {
                       video.muted = false;
-                      video.play();
+                      if (video.paused) {
+                        video.play().catch(err => {
+                          console.error("Error playing video:", err);
+                          // If we still have issues, switch to simple player
+                          switchToSimplePlayer();
+                        });
+                      }
                     }
                   }}
                 ></a-entity>
