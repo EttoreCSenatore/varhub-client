@@ -166,8 +166,9 @@ const ProjectsPage = () => {
       setSelectedVideo(project.videoUrl);
       setShowVideoModal(true);
     } else if (project.type === 'ar-experience' && project.pagePath) {
-      // Open in a new tab/window to completely bypass React Router
-      window.open(project.pagePath, '_blank');
+      // Fix the path to ensure it's correctly pointing to the root directory
+      const absolutePath = window.location.origin + '/' + project.pagePath;
+      window.open(absolutePath, '_blank');
     } else if (project.model_url) {
       // Handle AR model viewing
       navigate(`/ar-viewer?model=${encodeURIComponent(project.model_url)}`);
