@@ -4,6 +4,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { Spinner, Alert, Button, Card } from 'react-bootstrap';
 import ReactPlayer from 'react-player';
 import 'aframe';
+import { createCorsProxyUrl, setupCorsVideoElement } from '../utils/cors-proxy';
 
 const QRScanner = () => {
   // State for QR scanning
@@ -13,6 +14,7 @@ const QRScanner = () => {
   const [videoUrl, setVideoUrl] = useState(null);
   const [useSimplePlayer, setUseSimplePlayer] = useState(false);
   const [showVrViewer, setShowVrViewer] = useState(false);
+  const [proxyUrl, setProxyUrl] = useState(null);
   
   // State for camera controls
   const [cameraActive, setCameraActive] = useState(false);
@@ -281,6 +283,14 @@ const QRScanner = () => {
         // Check if it's a video URL
         if (isVideoUrl(url)) {
           console.log("Video URL detected, loading in embedded viewer");
+          
+          // Use our utility to create a proxy URL if needed
+          const proxiedUrl = createCorsProxyUrl(url);
+          if (proxiedUrl !== url) {
+            console.log("Using CORS proxy for video:", proxiedUrl);
+            setProxyUrl(proxiedUrl);
+          }
+          
           setVideoUrl(url);
           setShowVrViewer(true);
         } else {
@@ -358,14 +368,8 @@ const QRScanner = () => {
     setTimeout(() => {
       const videoEl = document.getElementById('vr-video');
       if (videoEl) {
-        // Set both src and setAttribute for better compatibility
-        if (videoUrl) {
-          videoEl.src = videoUrl;
-          videoEl.setAttribute('src', videoUrl);
-        }
-        
-        // Ensure proper CORS handling
-        videoEl.crossOrigin = "anonymous";
+        // Use our utility to set up the video element with CORS handling
+        setupCorsVideoElement(videoEl, videoUrl);
         
         // Try playing the video with user interaction fallback
         videoEl.play().catch(err => {
@@ -373,7 +377,7 @@ const QRScanner = () => {
           // Add visible play UI feedback for user
         });
       }
-    }, 500); // Short delay to ensure DOM is ready
+    }, 1000); // Longer delay to ensure DOM is ready
   };
   
   // Switch to simple player view
@@ -617,7 +621,7 @@ const QRScanner = () => {
                     device-orientation-permission-ui="enabled: true"
                     onLoaded={handleSceneLoaded}
                   >
-                    <a-assets>
+                    <a-assets timeout="10000">
                       <video
                         id="vr-video"
                         preload="auto"
@@ -631,7 +635,7 @@ const QRScanner = () => {
                     </a-assets>
                     
                     <a-videosphere 
-                      src={`#vr-video`}
+                      src="#vr-video"
                       rotation="0 -90 0"
                     ></a-videosphere>
                     

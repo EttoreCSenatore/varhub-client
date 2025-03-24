@@ -3,9 +3,11 @@ import { useLocation } from 'react-router-dom';
 import { Container, Alert, Spinner, Button } from 'react-bootstrap';
 import ReactPlayer from 'react-player';
 import 'aframe';
+import { createCorsProxyUrl, setupCorsVideoElement } from '../utils/cors-proxy';
 
 const VRViewerPage = () => {
   const [videoUrl, setVideoUrl] = useState('');
+  const [proxyUrl, setProxyUrl] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [useSimplePlayer, setUseSimplePlayer] = useState(false);
@@ -23,6 +25,13 @@ const VRViewerPage = () => {
         console.log("Loading video:", decodedUrl);
         setVideoUrl(decodedUrl);
         
+        // Use our utility to create a proxy URL for S3 URLs
+        const proxiedUrl = createCorsProxyUrl(decodedUrl);
+        if (proxiedUrl !== decodedUrl) {
+          console.log("Using CORS proxy:", proxiedUrl);
+          setProxyUrl(proxiedUrl);
+        }
+        
         // Set a timeout to automatically switch to simple player if VR mode takes too long
         const timer = setTimeout(() => {
           if (loading) {
@@ -30,7 +39,7 @@ const VRViewerPage = () => {
             setUseSimplePlayer(true);
             setLoading(false);
           }
-        }, 5000);
+        }, 7000); // Increased from 5000 to 7000 ms
         
         return () => clearTimeout(timer);
       } catch (err) {
@@ -64,14 +73,8 @@ const VRViewerPage = () => {
     setTimeout(() => {
       const videoEl = document.getElementById('vr-video');
       if (videoEl) {
-        // Set src both ways for better compatibility
-        if (videoUrl) {
-          videoEl.src = videoUrl;
-          videoEl.setAttribute('src', videoUrl);
-        }
-        
-        // Make sure CORS is properly handled
-        videoEl.crossOrigin = "anonymous";
+        // Use our utility to set up the video element with CORS handling
+        setupCorsVideoElement(videoEl, videoUrl);
         
         // Try to play with fallback for interaction requirement
         videoEl.play().catch(err => {
@@ -79,7 +82,7 @@ const VRViewerPage = () => {
           // We'll rely on the tap button for user to manually start
         });
       }
-    }, 500); // Short delay for DOM to be ready
+    }, 1000); // Longer delay for DOM to be ready
   };
 
   return (
@@ -115,7 +118,7 @@ const VRViewerPage = () => {
           
           <div className="flex-grow-1 bg-black d-flex align-items-center justify-content-center">
             <ReactPlayer
-              url={videoUrl}
+              url={proxyUrl || videoUrl}
               controls
               playing
               width="100%"
@@ -158,7 +161,7 @@ const VRViewerPage = () => {
                 device-orientation-permission-ui="enabled: true"
                 onLoaded={handleSceneLoaded}
               >
-                <a-assets>
+                <a-assets timeout="10000">
                   <video
                     id="vr-video"
                     preload="auto"
