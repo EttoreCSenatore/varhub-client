@@ -166,10 +166,17 @@ const ProjectsPage = () => {
       setSelectedVideo(project.videoUrl);
       setShowVideoModal(true);
     } else if (project.type === 'ar-experience' && project.pagePath) {
-      // For WebXR samples, use direct window open instead of React Router
-      // This prevents about:blank#blocked issues
-      const url = `.${project.pagePath}`;
-      window.open(url, '_self', 'noopener');
+      // Create and click a direct link to navigate more safely
+      const linkElement = document.createElement('a');
+      linkElement.href = `.${project.pagePath}`;
+      // Don't set target="_blank" to avoid opening in new tab
+      linkElement.rel = 'noopener noreferrer';
+      document.body.appendChild(linkElement);
+      linkElement.click();
+      // Remove the element after clicking
+      setTimeout(() => {
+        document.body.removeChild(linkElement);
+      }, 100);
     } else if (project.model_url) {
       // Handle AR model viewing
       navigate(`/ar-viewer?model=${encodeURIComponent(project.model_url)}`);
