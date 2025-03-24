@@ -145,9 +145,6 @@ const HomePage = () => {
             >
               Get Started
             </Button>
-            <Button as={Link} to="/projects" variant="outline-primary" size="lg">
-              Explore Projects
-            </Button>
           </div>
         </Col>
         <Col lg={6}>
