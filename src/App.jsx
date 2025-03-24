@@ -41,24 +41,12 @@ function App() {
 // Component to handle redirects to WebXR samples
 function WebXRSampleRedirect() {
   React.useEffect(() => {
-    // Get the current path without the leading slash
+    // Get the current path
     const currentPath = window.location.pathname;
     
-    // Use a more reliable approach with a direct link
-    const linkElement = document.createElement('a');
-    linkElement.href = `.${currentPath}`;
-    linkElement.rel = 'noopener noreferrer';
-    document.body.appendChild(linkElement);
-    linkElement.click();
-    
-    // Clean up the element
-    setTimeout(() => {
-      try {
-        document.body.removeChild(linkElement);
-      } catch (e) {
-        console.log('Element already removed');
-      }
-    }, 100);
+    // Remove the leading slash and redirect to the file
+    const fixedPath = currentPath.startsWith('/') ? currentPath.substring(1) : currentPath;
+    window.location.href = fixedPath;
     
     return () => {};
   }, []);
@@ -66,7 +54,6 @@ function WebXRSampleRedirect() {
   return (
     <div className="text-center py-5">
       <p>Redirecting to WebXR sample...</p>
-      <p>If you're not redirected automatically, <a href={`.${window.location.pathname}`}>click here</a> to open the sample.</p>
     </div>
   );
 }
