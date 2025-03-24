@@ -44,13 +44,17 @@ function WebXRSampleRedirect() {
     // Get the current path without the leading slash
     const currentPath = window.location.pathname;
     
-    // Redirect to the actual sample file
-    window.location.href = `.${currentPath}`;
+    // Use window.open with _self target and proper parameters
+    window.open(`.${currentPath}`, '_self', 'noopener');
+    
+    // Add a fallback link for users if automatic redirect is blocked
+    return () => {};
   }, []);
   
   return (
     <div className="text-center py-5">
       <p>Redirecting to WebXR sample...</p>
+      <p>If you're not redirected automatically, <a href={`.${window.location.pathname}`} target="_self">click here</a> to open the sample.</p>
     </div>
   );
 }

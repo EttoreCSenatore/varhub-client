@@ -1,0 +1,22 @@
+<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8e44ad;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3498db;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="300" height="200" fill="url(#grad1)" />
+  <!-- Stylized hand -->
+  <circle cx="100" cy="80" r="4" fill="white"/>
+  <circle cx="120" cy="70" r="4" fill="white"/>
+  <circle cx="140" cy="75" r="4" fill="white"/>
+  <circle cx="160" cy="80" r="4" fill="white"/>
+  <circle cx="180" cy="90" r="4" fill="white"/>
+  <circle cx="130" cy="110" r="4" fill="white"/>
+  <line x1="100" y1="80" x2="120" y2="70" stroke="white" stroke-width="2"/>
+  <line x1="120" y1="70" x2="140" y2="75" stroke="white" stroke-width="2"/>
+  <line x1="140" y1="75" x2="160" y2="80" stroke="white" stroke-width="2"/>
+  <line x1="160" y1="80" x2="180" y2="90" stroke="white" stroke-width="2"/>
+  <line x1="130" y1="110" x2="140" y2="75" stroke="white" stroke-width="2"/>
+  <text x="150" y="150" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="white">Hand Tracking</text>
+</svg> 

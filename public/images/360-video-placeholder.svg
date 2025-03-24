@@ -1,0 +1,14 @@
+<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6441a5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2a0845;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="300" height="200" fill="url(#grad1)" />
+  <circle cx="150" cy="100" r="50" fill="none" stroke="white" stroke-width="2"/>
+  <circle cx="150" cy="100" r="35" fill="none" stroke="white" stroke-width="1"/>
+  <path d="M150,65 A35,35 0 0 1 185,100" fill="none" stroke="white" stroke-width="3"/>
+  <path d="M150,135 A35,35 0 0 1 115,100" fill="none" stroke="white" stroke-width="3"/>
+  <text x="150" y="160" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="white">360° Video</text>
+</svg> 
