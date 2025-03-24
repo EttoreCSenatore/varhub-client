@@ -1,0 +1,6 @@
+<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="200" fill="#6c757d" />
+  <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="20" text-anchor="middle" fill="white">
+    WebXR Sample
+  </text>
+</svg> 
