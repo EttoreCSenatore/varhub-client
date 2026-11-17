@@ -89,7 +89,7 @@ export default function ProjectPage() {
           </Card>
         )}
         {project.type === 'link' && project.page_url && (
-          <Button as="a" size="lg" href={project.page_url} target="_blank" rel="noopener noreferrer" onClick={() => track('share', null)}>
+          <Button as="a" size="lg" href={project.page_url} target="_blank" rel="noopener noreferrer">
             <BoxArrowUpRight className="me-2" aria-hidden />Open
           </Button>
         )}

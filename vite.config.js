@@ -43,7 +43,6 @@ export default defineConfig({
     }),
   ],
   server: {
-    host: true, // reachable from a phone on the same network
     proxy: { '/api': { target: apiTarget, changeOrigin: true } },
   },
   test: {
