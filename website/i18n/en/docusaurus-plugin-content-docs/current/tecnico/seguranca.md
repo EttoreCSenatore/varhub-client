@@ -35,10 +35,10 @@ What the application protects today, what was fixed in the post-graduation revie
 | `webxr-polyfill@latest` script loaded from a CDN with no pinned version | Removed. |
 | Firebase keys in code and push code that never ran | Removed from the client. |
 | Server dependencies with high-severity vulnerabilities | `npm audit fix`; audit in CI. |
-| Personal email in old commits | History rewritten to GitHub's noreply email. |
 
 ## What is still missing
 
+- **Personal email in old commits** of both repositories: rewriting the history to GitHub's noreply email is pending.
 - **Token in `localStorage`**: exposed to XSS. An `HttpOnly` cookie would be safer.
 - **Public comments without moderation**: React escapes the text, but there is no way to hide abuse.
 - **Sign-up without email verification**.
