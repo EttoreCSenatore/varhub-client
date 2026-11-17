@@ -31,7 +31,7 @@ const features: Feature[] = [
   },
   {
     title: translate({id: 'home.feature.5.title', message: 'Software livre'}),
-    body: translate({id: 'home.feature.5.body', message: 'Cliente e servidor sob licença MIT: use, modifique e adapte para o seu negócio ou escola.'}),
+    body: translate({id: 'home.feature.5.body', message: 'Cliente e servidor sob licença AGPL-3.0: use, modifique e adapte para o seu negócio ou escola, compartilhando as melhorias.'}),
   },
 ];
 

@@ -33,7 +33,7 @@
     "message": "Free software"
   },
   "home.feature.5.body": {
-    "message": "Client and server under the MIT license: use, modify and adapt them for your business or school."
+    "message": "Client and server under the AGPL-3.0 license: use, modify and adapt them for your business or school, and share your improvements."
   },
   "home.role.0": {
     "message": "React 19 + Vite"

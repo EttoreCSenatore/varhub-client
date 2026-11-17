@@ -27,6 +27,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      - name: Dependency licenses (AGPL-3.0 compatible)
+        run: python3 scripts/auditar-licencas.py --npm .
       - run: npm test
       - run: npm run build
 
@@ -47,6 +49,8 @@ jobs:
           cache-dependency-path: website/package-lock.json
       - run: npm ci
       - run: npm run typecheck
+      - name: Dependency licenses of the docs site
+        run: python3 ../scripts/auditar-licencas.py --npm website
       - name: Documentation in Portuguese and English (same structure)
         run: python3 ../scripts/checar-traducao.py
       - run: npm run build

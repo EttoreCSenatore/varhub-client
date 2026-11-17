@@ -22,4 +22,4 @@ Veja [Desenvolvimento](https://ettorecsenatore.github.io/varhub-client/docs/tecn
 
 ## Licença
 
-[MIT](LICENSE.txt): software livre, você pode usar, modificar e distribuir, inclusive comercialmente. Nomes e logotipos do VARLab e do Conestoga College não são licenciados. Veja [Adaptar ao seu negócio](https://ettorecsenatore.github.io/varhub-client/docs/adaptar).
+Código sob [GNU AGPL-3.0-or-later](LICENSE) (software livre) e documentação sob [CC BY-SA 4.0](LICENSE-DOCS.md). Você pode usar, modificar e distribuir, inclusive comercialmente; se hospedar uma versão modificada, deve oferecer o código-fonte aos usuários. Nomes e logotipos do VARLab e do Conestoga College não são licenciados. Veja [Adaptar ao seu negócio](https://ettorecsenatore.github.io/varhub-client/docs/adaptar).
