@@ -2,6 +2,7 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Container, Nav, Navbar } from 'react-bootstrap';
 import { BoxArrowRight, QrCodeScan } from 'react-bootstrap-icons';
 import { useAuth } from '../context/AuthContext';
+import { brand } from '../brand';
 
 export default function NavBar() {
   const { user, isAdmin, logout } = useAuth();
@@ -13,7 +14,7 @@ export default function NavBar() {
       <Container>
         <Navbar.Brand as={Link} to="/" className="fw-bold">
           <img src="/logo192.png" alt="" width="28" height="28" className="me-2 rounded" />
-          VARHub
+          {brand.name}
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="main-nav" />
         <Navbar.Collapse id="main-nav">

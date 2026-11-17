@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Alert, Button, Form } from 'react-bootstrap';
 import api, { errorMessage } from '../utils/api';
 import StarRating from './StarRating';
+import { brand } from '../brand';
 
 // Anyone can send feedback; no account needed.
 export default function FeedbackForm({ projectId, onSubmitted }) {
@@ -26,7 +27,7 @@ export default function FeedbackForm({ projectId, onSubmitted }) {
   };
 
   if (status.state === 'done') {
-    return <Alert variant="success" className="mb-0">Thank you! Your feedback helps VARLab improve.</Alert>;
+    return <Alert variant="success" className="mb-0">Thank you! Your feedback helps {brand.org} improve.</Alert>;
   }
 
   return (

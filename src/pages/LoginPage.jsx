@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { Alert, Button, Card, Container, Form, Tab, Tabs } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
+import { brand } from '../brand';
 
 // Only same-site paths are allowed as a redirect target (no open redirects).
 const safeNext = (value) => (value && value.startsWith('/') && !value.startsWith('//') ? value : '/projects');
@@ -38,7 +39,7 @@ export default function LoginPage() {
     <Container className="py-4" style={{ maxWidth: 460 }}>
       <Card>
         <Card.Body>
-          <h1 className="h4 mb-1">Welcome to VARHub</h1>
+          <h1 className="h4 mb-1">Welcome to {brand.name}</h1>
           <p className="text-muted small">An account is optional. It only lets you keep your feedback linked to you.</p>
           <Tabs activeKey={tab} onSelect={(k) => { setTab(k); setError(''); }} className="mb-3" fill>
             <Tab eventKey="login" title="Sign in" />

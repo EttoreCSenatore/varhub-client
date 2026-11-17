@@ -1,5 +1,5 @@
 /// <reference types="vitest/config" />
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -8,9 +8,21 @@ import { VitePWA } from 'vite-plugin-pwa';
 const phone = process.env.VITE_HTTPS === '1';
 const apiTarget = process.env.VITE_PROXY_TARGET || 'http://localhost:5000';
 
-export default defineConfig({
+// Brand text from .env goes into index.html and the PWA manifest at build time.
+const brandFor = (mode) => {
+  const env = loadEnv(mode, process.cwd(), 'VITE_');
+  return {
+    name: env.VITE_BRAND_NAME || 'VARHub',
+    tagline: env.VITE_TAGLINE || 'Augmented and virtual reality experiences, right in your browser. No app to install.',
+  };
+};
+
+export default defineConfig(({ mode }) => {
+  const brand = brandFor(mode);
+  return {
   plugins: [
     react(),
+    { name: 'brand-html', transformIndexHtml: (html) => html.replaceAll('%BRAND_NAME%', brand.name).replaceAll('%TAGLINE%', brand.tagline) },
     ...(phone ? [basicSsl()] : []),
     VitePWA({
       registerType: 'autoUpdate',
@@ -27,9 +39,9 @@ export default defineConfig({
         ],
       },
       manifest: {
-        name: 'VARHub',
-        short_name: 'VARHub',
-        description: 'Scan a QR code and explore VARLab projects in AR and 360°.',
+        name: brand.name,
+        short_name: brand.name.slice(0, 12),
+        description: brand.tagline,
         theme_color: '#6d28d9',
         background_color: '#ffffff',
         display: 'standalone',
@@ -50,4 +62,5 @@ export default defineConfig({
     setupFiles: './src/test/setup.js',
     globals: true,
   },
+  };
 });
