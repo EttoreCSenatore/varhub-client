@@ -11,7 +11,7 @@ const ARViewer = ({ modelUrl, onClose }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isARMode, setIsARMode] = useState(false);
+  const [, setIsARMode] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
   const infoButtonRef = useRef(null);
   const [showInfoTooltip, setShowInfoTooltip] = useState(false);
