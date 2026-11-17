@@ -19,7 +19,7 @@ O que a aplicação protege hoje, o que foi corrigido na revisão pós-formatura
 - **Helmet**, corpo JSON limitado a 100 KB, **CORS** só para `ALLOWED_ORIGINS` e **TLS do banco verificado** fora do localhost.
 - **SQL parametrizado** em todas as consultas.
 - **QR Codes de terceiros**: o leitor nunca abre um link sozinho; mostra o endereço e pede um toque.
-- Sem dependências externas carregadas por CDN em tempo de execução.
+- O código do app não carrega scripts de CDN. (O `<model-viewer>` pode buscar decodificadores Draco/KTX2 do `gstatic.com` quando um modelo os usa.)
 - `npm audit` roda no CI do servidor e falha para vulnerabilidades altas.
 
 ## O que foi corrigido na revisão

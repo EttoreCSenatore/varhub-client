@@ -19,7 +19,7 @@ What the application protects today, what was fixed in the post-graduation revie
 - **Helmet**, JSON body limited to 100 KB, **CORS** only for `ALLOWED_ORIGINS` and **database TLS verified** outside localhost.
 - **Parameterized SQL** in every query.
 - **Third-party QR codes**: the scanner never opens a link by itself; it shows the address and asks for a tap.
-- No runtime dependencies loaded from a CDN.
+- The app's code loads no scripts from a CDN. (`<model-viewer>` may fetch Draco/KTX2 decoders from `gstatic.com` when a model uses them.)
 - `npm audit` runs in the server CI and fails on high-severity vulnerabilities.
 
 ## What was fixed in the review

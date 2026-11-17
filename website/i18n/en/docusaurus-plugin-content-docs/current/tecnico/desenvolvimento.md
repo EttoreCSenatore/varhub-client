@@ -77,6 +77,8 @@ Open `https://<computer-IP>:5173` on the phone and accept the development certif
 3. **360°**: tap Play, drag, and try **Use phone motion**.
 4. **Install**: browser menu, "Add to home screen", and open it offline.
 
+If the phone cannot open the address, the computer's firewall is probably blocking the port (for example `sudo ufw allow from 192.168.0.0/16 to any port 5173 proto tcp`, adjusting the subnet), or the Wi-Fi isolates devices from each other (guest networks). Alternatives: a temporary HTTPS tunnel (`cloudflared tunnel --url https://localhost:5173 --no-tls-verify`, starting Vite with `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=.trycloudflare.com`; it exposes the development server to the internet while open) or, on Android with USB debugging, `adb reverse tcp:5173 tcp:5173` and open `https://localhost:5173`.
+
 ## 4. This documentation
 
 ```bash

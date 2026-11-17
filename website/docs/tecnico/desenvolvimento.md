@@ -77,6 +77,8 @@ Abra o endereço `https://<IP-do-computador>:5173` no celular e aceite o aviso d
 3. **360°**: toque em Play, arraste e teste **Use phone motion**.
 4. **Instalar**: menu do navegador, "Adicionar à tela inicial", e abra offline.
 
+Se o celular não abrir o endereço, o firewall do computador provavelmente bloqueia a porta (por exemplo `sudo ufw allow from 192.168.0.0/16 to any port 5173 proto tcp`, ajustando a sub-rede), ou o Wi-Fi isola os aparelhos entre si (redes de convidados). Alternativas: um túnel HTTPS temporário (`cloudflared tunnel --url https://localhost:5173 --no-tls-verify`, iniciando o Vite com `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=.trycloudflare.com`; ele expõe o servidor de desenvolvimento à internet enquanto estiver aberto) ou, no Android com depuração USB, `adb reverse tcp:5173 tcp:5173` e abrir `https://localhost:5173`.
+
 ## 4. Esta documentação
 
 ```bash

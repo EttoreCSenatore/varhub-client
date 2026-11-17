@@ -50,7 +50,7 @@ Entra com uma conta de administrador e, no **painel**, vê escaneamentos, lança
 | Backend | Node.js, Express, `pg`, `jose` (JWT), `bcryptjs`, Helmet, `express-rate-limit` |
 | Banco | PostgreSQL (Neon Serverless) |
 | Testes | Vitest e Testing Library (cliente); `node:test` com PostgreSQL real (servidor) |
-| Hospedagem | Vercel (cliente) e Railway (servidor); documentação no GitHub Pages |
+| Hospedagem (original) | Vercel (cliente) e Railway (servidor); documentação no GitHub Pages. Qualquer host Node e estático serve. |
 
 ## Onde continuar
 

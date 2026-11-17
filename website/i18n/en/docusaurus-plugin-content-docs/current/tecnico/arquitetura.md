@@ -27,6 +27,7 @@ flowchart LR
 src/
   App.jsx                 routes, with pages loaded on demand
   context/AuthContext.jsx session: token in localStorage, validated via /api/auth/me
+  brand.js                name, organization, tagline and source link (via .env)
   utils/api.js            Axios, error messages and track() for events
   utils/qr.js             decides what a QR code means (tested)
   pages/                  Home, Projects, Project, Scan, Login, Admin

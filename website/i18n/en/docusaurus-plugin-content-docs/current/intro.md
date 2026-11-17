@@ -50,7 +50,7 @@ Sign in with an admin account and, on the **dashboard**, see scans, AR launches 
 | Backend | Node.js, Express, `pg`, `jose` (JWT), `bcryptjs`, Helmet, `express-rate-limit` |
 | Database | PostgreSQL (Neon Serverless) |
 | Tests | Vitest and Testing Library (client); `node:test` with real PostgreSQL (server) |
-| Hosting | Vercel (client) and Railway (server); docs on GitHub Pages |
+| Hosting (original) | Vercel (client) and Railway (server); docs on GitHub Pages. Any Node and static host works. |
 
 ## Where to go next
 
