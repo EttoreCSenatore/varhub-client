@@ -4,7 +4,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { Spinner, Alert, Button, Card } from 'react-bootstrap';
 import ReactPlayer from 'react-player';
 import 'aframe';
-import { createCorsProxyUrl, setupCorsVideoElement, setupDirectVideoElement, s3CorsConfigInstructions } from '../utils/cors-proxy';
+import { createCorsProxyUrl, setupCorsVideoElement, setupDirectVideoElement } from '../utils/cors-proxy';
 
 const QRScanner = () => {
   // State for QR scanning
@@ -319,7 +319,7 @@ const QRScanner = () => {
     try {
       new URL(string);
       return true;
-    } catch (err) {
+    } catch {
       return false;
     }
   };
@@ -349,7 +349,7 @@ const QRScanner = () => {
       }
       
       return false;
-    } catch (err) {
+    } catch {
       return false;
     }
   };

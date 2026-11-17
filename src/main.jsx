@@ -7,13 +7,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './GlobalStyles.css';  
 import { AuthProvider } from './context/AuthContext';  
 
-// Register service worker  
-if ('serviceWorker' in navigator) {  
-  window.addEventListener('load', () => {  
-    navigator.serviceWorker.register('/service-worker.js');  
-  });  
-}  
-
 ReactDOM.createRoot(document.getElementById('root')).render(  
   <React.StrictMode>  
     <BrowserRouter>  

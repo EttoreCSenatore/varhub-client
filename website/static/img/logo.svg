@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="VARHub">
+  <path d="M32 6 54 18.500v27L32 58 10 45.500v-27z" fill="#6d28d9"/>
+  <path d="M32 6 54 18.500 32 31 10 18.500z" fill="#8b5cf6"/>
+  <path d="M32 31v27L10 45.500v-27z" fill="#5b21b6"/>
+  <path d="M32 31 54 18.500v27L32 58z" fill="#4c1d95"/>
+  <path d="M32 31 54 18.500" stroke="#06b6d4" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="32" cy="31" r="4" fill="#06b6d4"/>
+</svg>

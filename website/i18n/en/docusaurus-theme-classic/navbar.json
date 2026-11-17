@@ -1,0 +1,22 @@
+{
+  "title": {
+    "message": "VARHub",
+    "description": "The title in the navbar"
+  },
+  "logo.alt": {
+    "message": "VARHub logo",
+    "description": "The alt text of navbar logo"
+  },
+  "item.label.Documentação": {
+    "message": "Documentation",
+    "description": "Navbar item with label Documentação"
+  },
+  "item.label.Roadmap": {
+    "message": "Roadmap",
+    "description": "Navbar item with label Roadmap"
+  },
+  "item.label.GitHub": {
+    "message": "GitHub",
+    "description": "Navbar item with label GitHub"
+  }
+}
