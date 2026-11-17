@@ -5,12 +5,10 @@ import ProjectsPage from './pages/ProjectsPage.jsx';
 import QRScannerPage from './pages/QRScannerPage.jsx';
 import NavBar from './components/NavBar';  
 import Footer from './components/Footer';  
-import { useAuth } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import LoginPage from './pages/LoginPage';
 
 function App() {  
-  const { currentUser } = useAuth();
   
   return (  
     <div className="app-container d-flex flex-column min-vh-100">

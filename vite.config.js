@@ -22,12 +22,15 @@ export default defineConfig({
           },  
         ],
       },
-      includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
+      includeAssets: ['icons/apple-touch-icon.png'],
       manifest: {
         name: 'VARhub Application',
         short_name: 'VARhub',
         description: 'VARhub - AR experiences for education',
         theme_color: '#ffffff',
+        background_color: '#ffffff',
+        display: 'standalone',
+        start_url: '/',
         icons: [
           {
             src: 'logo192.png',
