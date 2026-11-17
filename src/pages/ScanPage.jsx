@@ -5,6 +5,7 @@ import { BoxArrowUpRight } from 'react-bootstrap-icons';
 import QRScanner from '../components/QRScanner';
 import { track } from '../utils/api';
 import { parseScan } from '../utils/qr';
+import { brand } from '../brand';
 
 export default function ScanPage() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ export default function ScanPage() {
   return (
     <Container className="py-4 vh-narrow">
       <h1 className="h3">Scan a QR code</h1>
-      <p className="text-muted">Point the camera at a VARLab QR code. Project codes open right here.</p>
+      <p className="text-muted">Point the camera at a {brand.org} QR code. Project codes open right here.</p>
 
       {result ? (
         <Card body>

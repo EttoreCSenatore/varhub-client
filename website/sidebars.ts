@@ -4,6 +4,7 @@ const sidebars: SidebarsConfig = {
   docsSidebar: [
     'intro',
     'licenca',
+    'adaptar',
     'roadmap',
     {
       type: 'category',

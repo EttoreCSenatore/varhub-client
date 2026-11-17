@@ -4,7 +4,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'VARHub',
-  tagline: 'Plataforma web de marketing com realidade aumentada para o VARLab.',
+  tagline: 'Conceito de plataforma para publicar projetos de VR e AR para empresas e escolas. Software livre.',
   favicon: 'img/favicon.svg',
 
   future: {
@@ -89,6 +89,7 @@ const config: Config = {
           title: 'Produto',
           items: [
             {label: 'Visão geral', to: '/docs/intro'},
+            {label: 'Adaptar ao seu negócio', to: '/docs/adaptar'},
             {label: 'Roadmap', to: '/docs/roadmap'},
           ],
         },
@@ -111,7 +112,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `VARHub © ${new Date().getFullYear()} Ettore Senatore. Projeto final do Conestoga College. Licença MIT. Feito com Docusaurus.`,
+      copyright: `VARHub © ${new Date().getFullYear()} Ettore Senatore. Software livre (MIT). Nasceu como projeto final do Conestoga College. Feito com Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,

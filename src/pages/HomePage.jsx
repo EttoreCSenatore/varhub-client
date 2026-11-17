@@ -4,11 +4,12 @@ import { Button, Col, Container, Row } from 'react-bootstrap';
 import { Chat, Phone, QrCodeScan } from 'react-bootstrap-icons';
 import api from '../utils/api';
 import ProjectCard from '../components/ProjectCard';
+import { brand } from '../brand';
 
 const STEPS = [
-  { icon: QrCodeScan, title: 'Scan', text: 'Point your phone at a VARLab QR code, or open a project from the list.' },
+  { icon: QrCodeScan, title: 'Scan', text: 'Point your phone at a {brand.org} QR code, or open a project from the list.' },
   { icon: Phone, title: 'Explore', text: 'Turn 3D models, place them in your room with AR, or look around in 360° video.' },
-  { icon: Chat, title: 'Tell us', text: 'Rate what you saw. Your feedback shapes what VARLab builds next.' },
+  { icon: Chat, title: 'Tell us', text: 'Rate what you saw. Your feedback shapes what {brand.org} builds next.' },
 ];
 
 export default function HomePage() {
@@ -24,8 +25,8 @@ export default function HomePage() {
     <>
       <section className="vh-hero">
         <Container>
-          <h1>Step into VARLab’s projects</h1>
-          <p className="lead">Augmented and virtual reality experiences, right in your browser. No app to install.</p>
+          <h1>Step into {brand.org}’s projects</h1>
+          <p className="lead">{brand.tagline}</p>
           <div className="d-flex flex-wrap gap-2">
             <Button as={Link} to="/scan" size="lg" variant="light"><QrCodeScan className="me-2" aria-hidden />Scan a QR code</Button>
             <Button as={Link} to="/projects" size="lg" variant="outline-light">Browse projects</Button>

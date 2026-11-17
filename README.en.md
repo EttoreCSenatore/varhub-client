@@ -2,7 +2,7 @@
 
 **English** · [Português](README.md)
 
-**VARLab**'s web marketing platform: visitors scan a QR code and explore projects in **AR (3D models)** and **360° video** on their phone, and leave feedback with no account. Staff get a dashboard with metrics and printable QR codes. It was my **capstone project at Conestoga College**.
+**A free concept for publishing VR and AR projects for companies and schools.** The audience scans a QR code and explores **3D models with AR** and **360° video** on their phone, and leaves feedback with no account. Staff get a dashboard with metrics and printable QR codes. It can be **adapted by any business or institution** (name, logo, colours and content are configurable). It started as my **capstone project at Conestoga College**, with VARLab as the original use case.
 
 📖 Documentation: https://ettorecsenatore.github.io/varhub-client/ (Portuguese and English)
 
@@ -22,4 +22,4 @@ See [Development](https://ettorecsenatore.github.io/varhub-client/en/docs/tecnic
 
 ## License
 
-[MIT](LICENSE.txt). The samples in `public/webxr-samples-main` are MIT, © The Immersive Web Community Group.
+[MIT](LICENSE.txt): free software, you may use, modify and distribute it, including commercially. The names and logos of VARLab and Conestoga College are not licensed. See [Adapt it to your business](https://ettorecsenatore.github.io/varhub-client/en/docs/adaptar).

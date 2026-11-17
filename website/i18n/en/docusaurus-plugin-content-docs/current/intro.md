@@ -7,9 +7,9 @@ sidebar_position: 1
 
 # VARHub
 
-**VARHub** is a web-based marketing platform built for **VARLab** to showcase its projects through **augmented reality (AR)** and **360° video**, right in a phone's browser with nothing to install.
+**VARHub** is a concept platform for **publishing VR and AR projects** for **companies and schools**: the audience scans a QR code and explores **3D models in augmented reality** and **360° video** right in the phone's browser, with nothing to install. It is **free software** (MIT) and designed to be **adapted by any business or educational institution**: change the name, logo and colours, add your projects and print your QR codes. See [Adapt it to your business](adaptar).
 
-It was my **capstone project** at **Conestoga College**. The system has two parts, in two repositories:
+It started as my **capstone project** at **Conestoga College**, with **VARLab** as the original use case. The system has two parts, in two repositories:
 
 | Part | Repository | What it does |
 |---|---|---|
@@ -20,11 +20,11 @@ It was my **capstone project** at **Conestoga College**. The system has two part
 
 ## How a visitor uses it
 
-1. **Scans** a VARLab QR code (with the in-app scanner or the phone's own camera) and lands on the project page.
+1. **Scans** one of the organization's QR codes (with the in-app scanner or the phone's own camera) and lands on the project page.
 2. **Explores**: spins a 3D model and places it in the room with AR, or looks around in a 360° video.
 3. **Rates**: gives 1 to 5 stars and an optional comment, no account needed.
 
-## What VARLab staff do
+## What the organization's staff do
 
 Sign in with an admin account and, on the **dashboard**, see scans, AR launches and ratings for the last 14 days, create and publish projects, and **download the QR code** of each one to print.
 
@@ -59,4 +59,5 @@ Sign in with an admin account and, on the **dashboard**, see scans, AR launches 
 - [API](tecnico/api): routes, authentication and errors.
 - [Security](tecnico/seguranca): what is protected and what is still missing.
 - [Development](tecnico/desenvolvimento): how to run everything and test on a phone.
+- [Adapt it to your business](adaptar): branding, hosting and use cases.
 - [Roadmap](roadmap): what shipped and what stayed planned.

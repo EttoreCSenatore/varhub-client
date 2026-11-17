@@ -11,7 +11,7 @@ type Feature = {title: string; body: string};
 const features: Feature[] = [
   {
     title: translate({id: 'home.feature.0.title', message: 'Galeria pública'}),
-    body: translate({id: 'home.feature.0.body', message: 'Os projetos do VARLab com busca e filtros, abertos a qualquer visitante, sem conta.'}),
+    body: translate({id: 'home.feature.0.body', message: 'Os projetos da sua organização com busca e filtros, abertos a qualquer visitante, sem conta.'}),
   },
   {
     title: translate({id: 'home.feature.1.title', message: 'AR por QR Code'}),
@@ -30,8 +30,8 @@ const features: Feature[] = [
     body: translate({id: 'home.feature.4.body', message: 'Servidor Express com PostgreSQL (Neon), papéis, limites de requisição e testes de integração.'}),
   },
   {
-    title: translate({id: 'home.feature.5.title', message: 'Código aberto'}),
-    body: translate({id: 'home.feature.5.body', message: 'Cliente e servidor públicos sob licença MIT, com documentação em português e inglês.'}),
+    title: translate({id: 'home.feature.5.title', message: 'Software livre'}),
+    body: translate({id: 'home.feature.5.body', message: 'Cliente e servidor sob licença MIT: use, modifique e adapte para o seu negócio ou escola.'}),
   },
 ];
 
@@ -45,10 +45,10 @@ const roles = [
 export default function Home(): ReactNode {
   return (
     <Layout
-      title={translate({id: 'home.title', message: 'Marketing com realidade aumentada'})}
+      title={translate({id: 'home.title', message: 'VR e AR para empresas e escolas'})}
       description={translate({
         id: 'home.description',
-        message: 'VARHub é a plataforma web de marketing do VARLab: projetos, AR por QR Code, feedback e notificações. Projeto final do Conestoga College.',
+        message: 'VARHub é um conceito livre para publicar projetos de VR e AR para empresas e escolas: QR Code, modelos 3D com AR, vídeo 360° e feedback no celular.',
       })}>
       <header className={styles.hero}>
         <div className="container">
@@ -56,7 +56,7 @@ export default function Home(): ReactNode {
             VARHub
           </Heading>
           <p className={styles.tagline}>
-            <Translate id="home.tagline">Escaneie um QR Code e explore os projetos do VARLab em realidade aumentada e vídeo 360°, direto no celular.</Translate>
+            <Translate id="home.tagline">Um conceito livre para publicar projetos de VR e AR para empresas e escolas: o público escaneia um QR Code e explora em 3D, AR e vídeo 360°, direto no celular.</Translate>
           </p>
           <div className={styles.roles}>
             {roles.map((r) => (

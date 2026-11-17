@@ -2,7 +2,7 @@
 
 [English](README.en.md) · **Português**
 
-Plataforma web de marketing do **VARLab**: o visitante escaneia um QR Code e explora projetos em **AR (modelos 3D)** e **vídeo 360°** no celular, e deixa feedback sem precisar de conta. A equipe tem um painel com métricas e QR Codes para imprimir. Foi o meu **projeto final no Conestoga College**.
+**Conceito livre para publicar projetos de VR e AR para empresas e escolas.** O público escaneia um QR Code e explora **modelos 3D com AR** e **vídeo 360°** no celular, e deixa feedback sem conta. A equipe tem um painel com métricas e QR Codes para imprimir. Pode ser **adaptado por qualquer negócio ou instituição** (nome, logotipo, cores e conteúdo são configuráveis). Nasceu como o meu **projeto final no Conestoga College**, com o VARLab como caso de uso original.
 
 📖 Documentação: https://ettorecsenatore.github.io/varhub-client/ (português e inglês)
 
@@ -22,4 +22,4 @@ Veja [Desenvolvimento](https://ettorecsenatore.github.io/varhub-client/docs/tecn
 
 ## Licença
 
-[MIT](LICENSE.txt). Os exemplos em `public/webxr-samples-main` são MIT, © The Immersive Web Community Group.
+[MIT](LICENSE.txt): software livre, você pode usar, modificar e distribuir, inclusive comercialmente. Nomes e logotipos do VARLab e do Conestoga College não são licenciados. Veja [Adaptar ao seu negócio](https://ettorecsenatore.github.io/varhub-client/docs/adaptar).

@@ -3,7 +3,7 @@
     "message": "Public gallery"
   },
   "home.feature.0.body": {
-    "message": "VARLab projects with search and filters, open to any visitor, no account needed."
+    "message": "Your organization's projects with search and filters, open to any visitor, no account needed."
   },
   "home.feature.1.title": {
     "message": "AR via QR code"
@@ -30,10 +30,10 @@
     "message": "Express server with PostgreSQL (Neon), roles, rate limits and integration tests."
   },
   "home.feature.5.title": {
-    "message": "Open source"
+    "message": "Free software"
   },
   "home.feature.5.body": {
-    "message": "Public client and server under the MIT license, with documentation in Portuguese and English."
+    "message": "Client and server under the MIT license: use, modify and adapt them for your business or school."
   },
   "home.role.0": {
     "message": "React 19 + Vite"
@@ -48,13 +48,13 @@
     "message": "Firebase"
   },
   "home.title": {
-    "message": "Marketing with augmented reality"
+    "message": "VR and AR for companies and schools"
   },
   "home.description": {
-    "message": "VARHub is VARLab's web marketing platform: projects, AR via QR code, feedback and notifications. A Conestoga College capstone project."
+    "message": "VARHub is a free concept for publishing VR and AR projects for companies and schools: QR codes, 3D models with AR, 360° video and feedback on the phone."
   },
   "home.tagline": {
-    "message": "Scan a QR code and explore VARLab's projects in augmented reality and 360° video, right on your phone."
+    "message": "A free concept for publishing VR and AR projects for companies and schools: the audience scans a QR code and explores in 3D, AR and 360° video, right on the phone."
   },
   "home.docs": {
     "message": "Read the documentation"

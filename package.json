@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "varhub-client",
   "private": true,
   "version": "2.0.0",
   "type": "module",
@@ -42,5 +42,7 @@
     "vite": "^6.2.0",
     "vite-plugin-pwa": "^0.21.1",
     "vitest": "^5.1.0"
-  }
+  },
+  "license": "MIT",
+  "description": "VARHub: open-source AR/VR project showcase (QR code to 3D/AR, 360 video, feedback)"
 }
