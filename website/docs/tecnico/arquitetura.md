@@ -6,48 +6,53 @@ sidebar_position: 1
 
 # Arquitetura
 
-O VARHub é uma aplicação de página única (SPA/PWA) que conversa com uma API REST. Dois serviços externos completam o desenho: o **Neon** (PostgreSQL) e o **Firebase** (push).
+O VARHub é uma aplicação de página única (SPA/PWA) que conversa com uma API REST e com o PostgreSQL.
 
 ```mermaid
 flowchart LR
-  U[Visitante no navegador] --> C[Cliente React PWA<br/>Vercel]
-  C -- REST + JWT --> S[Servidor Express<br/>Railway]
+  P[Celular do visitante] --> C[Cliente React PWA<br/>Vercel]
+  C -- REST + JWT opcional --> S[Servidor Express<br/>Railway]
   S --> DB[(PostgreSQL<br/>Neon)]
-  S -- Admin SDK --> FCM[Firebase Cloud Messaging]
-  FCM -- push --> U
-  C -- vídeo 360° --> S3[(AWS S3)]
   C -- câmera --> QR[Leitor de QR Code]
-  QR --> AR[Visualizadores AR/VR<br/>WebXR · Three.js · A-Frame]
+  QR -- /projects/:id --> C
+  C --> MV[model-viewer<br/>3D e AR]
+  C --> V360[Vídeo 360°<br/>Three.js]
+  V360 -- arquivo de vídeo --> M[(Hospedagem de mídia<br/>com CORS)]
+  A[Administrador] -- painel + JWT admin --> C
 ```
 
 ## Cliente (`varhub-client`)
 
 ```text
 src/
-  App.jsx                 rotas: /, /login, /projects (privada), /scan
-  context/AuthContext.jsx login, cadastro e sessão (token no localStorage)
-  utils/api.js            Axios com o token JWT em cada requisição
-  pages/                  Home, Login, Projects, QRScanner
-  components/             NavBar, Footer, PrivateRoute, QRScanner, ARViewer, FeedbackForm
-  firebase.js             configuração do Firebase e permissão de notificações
-public/
-  firebase-messaging-sw.js  service worker das notificações em segundo plano
-  webxr-samples-main/       exemplos WebXR locais (MIT)
+  App.jsx                 rotas, com páginas carregadas sob demanda
+  context/AuthContext.jsx sessão: token no localStorage, validado em /api/auth/me
+  utils/api.js            Axios, mensagens de erro e track() de eventos
+  utils/qr.js             decide o que um QR Code significa (testado)
+  pages/                  Home, Projects, Project, Scan, Login, Admin
+  components/             NavBar, ModelViewer, Video360, QRScanner, FeedbackForm, ProjectCard...
+vite.config.js            proxy /api, HTTPS opcional (dev:phone), PWA e cache
 website/                  este site de documentação (Docusaurus)
 ```
 
-A rota `/projects` usa `PrivateRoute`: sem token, o visitante vai para o login. O PWA é gerado por `vite-plugin-pwa` (Workbox), com cache-first para imagens e modelos `.glb` e network-first para PDF e JSON.
+Decisões que importam:
+
+- **Primeira tela leve.** O JavaScript inicial tem cerca de 300 KB; o visualizador 3D, o vídeo 360° e o painel só carregam nas páginas que os usam.
+- **Sem login para o visitante.** Galeria, projeto e feedback são públicos; conta é opcional.
+- **Mesma origem em desenvolvimento.** O Vite repassa `/api` ao servidor, evitando CORS e conteúdo misto no celular.
+- **Funciona offline.** A lista de projetos usa *stale-while-revalidate*; imagens e modelos usam cache primeiro.
 
 ## Servidor (`varhub-server`)
 
 ```text
-server.js                 Express, CORS por lista, Helmet, rate limit, /health
-db.js                     pool do PostgreSQL (SSL com verificação)
-middleware/auth.js        requireAuth, optionalAuth e signToken (JWT HS256)
+app.js / server.js        Express (testável) e inicialização
+db.js                     pool do PostgreSQL (TLS verificado fora do localhost)
+middleware/auth.js        requireAuth, optionalAuth, requireAdmin, signToken (JWT HS256)
+middleware/limits.js      limites de requisições
 controllers/ + routes/    auth, projects, feedback, analytics, notifications
-firebaseAdmin.js          Firebase Admin (variável de ambiente ou arquivo local)
-db/schema.sql             esquema das tabelas
-scripts/check-*.js        utilitários que conferem/criam tabelas
+db/migrations/*.sql       esquema versionado; db/seed.sql com dados de demonstração
+scripts/                  migrate.js e make-admin.js
+test/api.test.js          testes de integração
 ```
 
 ## Modelo de dados
@@ -57,15 +62,13 @@ erDiagram
   users ||--o{ projects : cria
   users ||--o{ feedback : envia
   users ||--o{ engagement_logs : gera
-  users ||--o{ notifications : recebe
   projects ||--o{ ar_content : tem
   projects ||--o{ feedback : recebe
   projects ||--o{ engagement_logs : registra
-  projects ||--o{ analytics : resume
 ```
 
-Detalhes das colunas em `db/schema.sql`. A tabela `engagement_logs` aceita `user_id` nulo para visitantes anônimos.
+`users.role` é `visitor` ou `admin`. `projects.type` é `model`, `video360`, `webxr` ou `link`, e `projects.status` é `draft`, `published` ou `archived` (só os publicados aparecem ao público). `feedback.user_id` e `engagement_logs.user_id` são nulos para visitantes anônimos.
 
 ## Implantação
 
-O cliente é publicado na Vercel (variável `VITE_API_URL` aponta para o servidor) e o servidor na Railway, que fica atrás de proxy (`trust proxy` ligado). A origem do cliente precisa estar em `ALLOWED_ORIGINS` para o CORS.
+O cliente vai para a Vercel com `VITE_API_URL` apontando para o servidor; o servidor vai para um host Node com PostgreSQL (Railway e Neon no projeto original). A origem do cliente precisa estar em `ALLOWED_ORIGINS`.

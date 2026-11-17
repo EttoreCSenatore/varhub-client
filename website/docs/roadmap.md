@@ -6,32 +6,32 @@ sidebar_position: 3
 
 # Roadmap
 
-O projeto foi entregue como trabalho final. Esta página separa o que **funciona hoje** do que ficou **planejado**.
+Esta página separa o que **funciona hoje** do que ficou **planejado**.
 
 ## Entregue
 
-- Galeria de projetos protegida por login.
-- Cadastro e login com JWT.
-- Leitor de QR Code (câmera) que abre vídeos no reprodutor, com visor 360°, e links externos.
-- Demonstrações WebXR na galeria (AR, VR, hit-test, âncoras, mãos, fotos e vídeos 360°) e componente de visualização de modelos 3D com hit-test.
-- Formulário de feedback com avaliação de 1 a 5.
-- PWA com cache offline e notificações push (FCM).
-- API com projetos, feedback, analytics e notificações, e esquema SQL versionado.
-- Endurecimento de segurança do servidor (ver [Segurança](tecnico/seguranca)).
+- Galeria pública de projetos, com busca e filtro por tipo.
+- Página de projeto com visualizador 3D e AR (`<model-viewer>`), vídeo 360° e demonstrações WebXR.
+- Leitor de QR Code (câmera ou foto) que abre o projeto dentro do app, e links `?src=qr` contados como escaneamento.
+- Feedback anônimo ou com conta, com resumo público sem dados do autor.
+- Contas com JWT e papéis (visitante e administrador).
+- Painel administrativo: métricas, cadastro, edição e publicação de projetos, e download do QR Code de cada projeto.
+- PWA com cache offline da lista de projetos e das mídias.
+- API com migrações, testes de integração com PostgreSQL e CI.
+- Endurecimento de segurança (ver [Segurança](tecnico/seguranca)).
 
 ## Planejado
 
+- Notificações push: o servidor já envia (rota de administrador), mas falta o cliente registrar o dispositivo e guardar o token.
 - Mapa 2D do campus com integração ao **ARWay** (prova de conceito).
-- Painel de analytics com gráficos de engajamento e tendência de feedback.
-- Downloads para uso offline (folhetos, vídeos e marcadores AR).
-- Cadastro de projetos e de conteúdo AR por uma área administrativa (hoje os dados entram direto no banco).
-- Papéis de usuário (administrador e visitante) para restringir analytics e notificações.
-- Testes automatizados no cliente e no servidor.
-- Troca dos proxies CORS públicos por uma configuração de CORS no bucket S3.
+- Upload de modelos e vídeos pelo painel (hoje o painel recebe a URL do arquivo).
+- Moderação de comentários.
+- Login com Google.
+- Trocar o token no `localStorage` por cookie `HttpOnly`.
+- Testes de ponta a ponta (Playwright) em celular real ou emulado.
 
-## Problemas conhecidos
+## Pontos de atenção
 
-- O visualizador de modelos 3D (`ARViewer`) existe, mas não está ligado a nenhuma rota: a página de projetos navega para `/ar-viewer`, que não está registrada em `App.jsx`.
-- O botão "Login with Google" é só um espaço reservado: o login com Google ainda não foi implementado.
-- O cliente usa o login do próprio servidor (JWT), não o Firebase Authentication descrito no README original.
-- As dependências do A-Frame incluem um pacote buscado direto do GitHub (`three-bmfont-text`), o que exige permitir dependências git no `npm ci`.
+- Vídeos 360° precisam de uma hospedagem com cabeçalhos CORS (por exemplo, um bucket S3 configurado). Sem isso o navegador bloqueia a textura.
+- A câmera e o WebXR exigem **HTTPS**. Em desenvolvimento use `npm run dev:phone`.
+- O backend publicado anteriormente na Railway não existe mais; é preciso reimplantar a API e apontar `VITE_API_URL` para ela.

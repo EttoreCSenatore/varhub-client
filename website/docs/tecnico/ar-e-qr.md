@@ -6,32 +6,40 @@ sidebar_position: 2
 
 # AR e QR Code
 
-## Leitura do QR Code
+## O QR Code do projeto
 
-O componente `QRScanner` pede acesso à câmera e tenta primeiro a biblioteca `html5-qrcode`. Se ela não iniciar, cai para uma leitura manual: cada quadro do vídeo é desenhado num `canvas` e decodificado com `jsQR`.
+No painel, cada projeto tem um botão **QR** que baixa um PNG com o endereço `https://<site>/projects/<id>?src=qr`. Escanear esse código com **qualquer** leitor (inclusive a câmera nativa do celular) abre a página do projeto, e o parâmetro `src=qr` faz o servidor contar um escaneamento.
 
-O conteúdo do QR Code é tratado como texto e depois como URL:
+## Leitor dentro do app
 
-| Conteúdo detectado | O que acontece |
+A página **Scan** abre a câmera traseira e decodifica quadros reduzidos (até 640 px de largura) com `jsQR`, cerca de oito vezes por segundo. Se a câmera for negada ou não existir, o visitante pode **escolher uma foto** do QR Code.
+
+O que acontece depois da leitura:
+
+| Conteúdo | Resultado |
 |---|---|
-| URL de vídeo (`.mp4`, `.webm`, `.ogg`, `.mov`, `.avi`, YouTube, Vimeo e similares) | Abre no reprodutor `react-player`, com a opção de visor 360° (`a-videosphere` do A-Frame). |
-| Qualquer outra URL | Mostra o endereço e oferece abrir em outra aba (`noopener,noreferrer`). |
-| Texto que não é URL | Mostra o texto lido. |
+| Link `/projects/<id>` deste app | Abre o projeto e conta um escaneamento. |
+| Outro endereço `http(s)` | Mostra o endereço completo e só abre com um toque, avisando que o VARHub não criou o link. |
+| Qualquer outro texto (inclusive `javascript:` e `tel:`) | Mostra o texto; nunca vira link. |
 
-## Vídeos 360° e CORS
+## Modelos 3D e AR
 
-Os vídeos 360° ficam no **AWS S3**. Para o navegador poder usá-los como textura WebGL, o bucket precisa enviar cabeçalhos CORS. Como a configuração do bucket não estava disponível, o cliente usa proxies CORS públicos (`src/utils/cors-proxy.js`) para URLs do S3, tentando o próximo da lista quando um falha.
+Projetos do tipo **3D / AR** usam o componente `<model-viewer>` do Google:
+
+- Em todos os navegadores: girar, ampliar e ver o modelo (`.glb`).
+- Android: botão **View in your space (AR)** com WebXR ou Scene Viewer.
+- iPhone: Quick Look. Se não houver arquivo `.usdz`, o `<model-viewer>` gera um a partir do `.glb`.
+
+O evento `ar_launch` é registrado quando a sessão de AR começa.
+
+## Vídeo 360°
+
+Projetos **360° video** usam um visualizador próprio com Three.js: o vídeo equirretangular é aplicado ao interior de uma esfera. Arraste para olhar ao redor, use a roda do mouse para zoom ou, no celular, o botão **Use phone motion** para girar com o aparelho (no iPhone o sistema pede permissão de movimento).
 
 :::warning
-Proxies públicos veem a URL do vídeo e podem cair a qualquer momento. A solução definitiva é configurar o CORS no bucket (ver [Roadmap](../roadmap)).
+O arquivo de vídeo precisa ser servido com cabeçalhos **CORS** (`Access-Control-Allow-Origin`), senão o navegador não deixa usá-lo como textura. No S3, configure o CORS do bucket para a origem do app.
 :::
 
-## Visualizador de modelos 3D
+## Demonstrações WebXR
 
-O componente `ARViewer` carrega um modelo `.glb` com o `GLTFLoader` do Three.js, centraliza e ajusta a escala, e, em dispositivos com WebXR, usa uma sessão de AR com **hit-test** e um retículo para posicionar o modelo no ambiente. A página de projetos navega para `/ar-viewer?model=...`, mas essa rota ainda não está registrada (ver [Roadmap](../roadmap)).
-
-## Experiências WebXR
-
-A página de projetos lista demonstrações que apontam para os exemplos oficiais do [WebXR Samples](https://immersive-web.github.io/webxr-samples/): AR imersivo, VR, rastreamento de entrada, hit-test, âncoras, mãos, fotos 360° e vídeo estéreo. Elas exigem um navegador e um dispositivo com WebXR (por exemplo Chrome no Android para AR).
-
-O pacote `webxr-polyfill` cobre navegadores sem suporte nativo, com recursos limitados.
+Projetos do tipo **WebXR demo** abrem uma página externa (por exemplo os exemplos oficiais do [WebXR Samples](https://immersive-web.github.io/webxr-samples/)). Elas exigem Chrome em um Android com ARCore; o app avisa quando o aparelho não é compatível.
