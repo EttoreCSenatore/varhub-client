@@ -43,6 +43,6 @@
     "vite-plugin-pwa": "^0.21.1",
     "vitest": "^5.1.0"
   },
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "description": "VARHub: open-source AR/VR project showcase (QR code to 3D/AR, 360 video, feedback)"
 }

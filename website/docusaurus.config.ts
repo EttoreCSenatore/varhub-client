@@ -112,7 +112,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `VARHub © ${new Date().getFullYear()} Ettore Senatore. Software livre (MIT). Nasceu como projeto final do Conestoga College. Feito com Docusaurus.`,
+      copyright: `VARHub © ${new Date().getFullYear()} Ettore Senatore. Software livre (AGPL-3.0-or-later). Nasceu como projeto final do Conestoga College. Feito com Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,

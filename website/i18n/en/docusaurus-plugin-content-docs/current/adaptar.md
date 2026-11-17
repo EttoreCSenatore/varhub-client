@@ -45,6 +45,7 @@ Set `VITE_API_URL` in the client and `ALLOWED_ORIGINS` in the API. The local wal
 
 ## Before you publish
 
+- If you **host a modified version**, the AGPL requires offering the source code to its users: point the footer's **Source** link at your repository (see [License](licenca)).
 - Replace the logo and texts. The names and logos of VARLab and Conestoga College are **not** licensed for third-party use (see [License](licenca)).
 - Generate a strong `JWT_SECRET` and promote only the admin accounts you need.
 - Review [Security](tecnico/seguranca): sign-up without email verification and unmoderated comments may need changes in your context.

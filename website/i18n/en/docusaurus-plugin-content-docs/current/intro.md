@@ -7,7 +7,7 @@ sidebar_position: 1
 
 # VARHub
 
-**VARHub** is a concept platform for **publishing VR and AR projects** for **companies and schools**: the audience scans a QR code and explores **3D models in augmented reality** and **360° video** right in the phone's browser, with nothing to install. It is **free software** (MIT) and designed to be **adapted by any business or educational institution**: change the name, logo and colours, add your projects and print your QR codes. See [Adapt it to your business](adaptar).
+**VARHub** is a concept platform for **publishing VR and AR projects** for **companies and schools**: the audience scans a QR code and explores **3D models in augmented reality** and **360° video** right in the phone's browser, with nothing to install. It is **free software** (AGPL-3.0-or-later) and designed to be **adapted by any business or educational institution**: change the name, logo and colours, add your projects and print your QR codes. See [Adapt it to your business](adaptar).
 
 It started as my **capstone project** at **Conestoga College**, with **VARLab** as the original use case. The system has two parts, in two repositories:
 

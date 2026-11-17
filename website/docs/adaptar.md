@@ -45,6 +45,7 @@ Defina `VITE_API_URL` no cliente e `ALLOWED_ORIGINS` na API. O passo a passo loc
 
 ## Antes de publicar
 
+- Se você **hospedar uma versão modificada**, a AGPL exige oferecer o código-fonte aos usuários: aponte o link **Source** do rodapé para o seu repositório (veja [Licença](licenca)).
 - Troque o logotipo e os textos. Nomes e logotipos do VARLab e do Conestoga College **não** estão licenciados para uso por terceiros (ver [Licença](licenca)).
 - Gere um `JWT_SECRET` forte e promova só as contas de administrador necessárias.
 - Revise a [Segurança](tecnico/seguranca): cadastro sem verificação de e-mail e comentários sem moderação podem exigir ajustes no seu contexto.
