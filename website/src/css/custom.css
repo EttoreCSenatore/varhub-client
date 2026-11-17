@@ -1,0 +1,45 @@
+/* VARHub: roxo de realidade aumentada com destaque ciano. */
+
+:root {
+  --ifm-color-primary: #6d28d9;
+  --ifm-color-primary-dark: #6226c4;
+  --ifm-color-primary-darker: #5b21b6;
+  --ifm-color-primary-darkest: #4c1d95;
+  --ifm-color-primary-light: #7c3aed;
+  --ifm-color-primary-lighter: #8b5cf6;
+  --ifm-color-primary-lightest: #a78bfa;
+  --ifm-code-font-size: 95%;
+  --ifm-font-family-base: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --cd-accent: #06b6d4;
+  --cd-paper: #f7f5fe;
+  --cd-card: #ffffff;
+  --cd-line: rgba(109, 40, 217, 0.08);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #c4b5fd;
+  --ifm-color-primary-dark: #a78bfa;
+  --ifm-color-primary-darker: #8b5cf6;
+  --ifm-color-primary-darkest: #7c3aed;
+  --ifm-color-primary-light: #ddd6fe;
+  --ifm-color-primary-lighter: #ede9fe;
+  --ifm-color-primary-lightest: #f5f3ff;
+  --ifm-background-color: #100d20;
+  --ifm-background-surface-color: #171230;
+  --ifm-navbar-background-color: #171230;
+  --ifm-footer-background-color: #0b0817;
+  --docusaurus-highlighted-code-line-bg: rgba(196, 181, 253, 0.15);
+  --cd-paper: #100d20;
+  --cd-card: #171230;
+  --cd-line: rgba(196, 181, 253, 0.07);
+}
+
+[data-theme='dark'] .button--primary {
+  color: #0b0817;
+}
+
+.markdown img {
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 8px;
+}
