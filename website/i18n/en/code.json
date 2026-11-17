@@ -1,33 +1,33 @@
 {
   "home.feature.0.title": {
-    "message": "Project gallery"
+    "message": "Public gallery"
   },
   "home.feature.0.body": {
-    "message": "VARLab projects and WebXR demos, available to signed-in users."
+    "message": "VARLab projects with search and filters, open to any visitor, no account needed."
   },
   "home.feature.1.title": {
     "message": "AR via QR code"
   },
   "home.feature.1.body": {
-    "message": "Point the camera at a QR code and open videos, including a 360° viewer, or links straight from the browser."
+    "message": "Scan a QR code and open 3D models with AR or 360° videos right in the phone browser."
   },
   "home.feature.2.title": {
-    "message": "Accounts and feedback"
+    "message": "One-tap feedback"
   },
   "home.feature.2.body": {
-    "message": "Sign-up and login with JWT, and a rating form tied to each project."
+    "message": "A 1 to 5 rating and a comment with no account; the dashboard shows the results."
   },
   "home.feature.3.title": {
-    "message": "PWA and notifications"
+    "message": "PWA and offline"
   },
   "home.feature.3.body": {
-    "message": "Installable, with offline cache and push notifications through Firebase Cloud Messaging."
+    "message": "Installable, with the project list and media cached for use without internet."
   },
   "home.feature.4.title": {
     "message": "Its own API"
   },
   "home.feature.4.body": {
-    "message": "Express server with PostgreSQL (Neon), protected with Helmet, rate limiting and authenticated routes."
+    "message": "Express server with PostgreSQL (Neon), roles, rate limits and integration tests."
   },
   "home.feature.5.title": {
     "message": "Open source"
@@ -54,7 +54,7 @@
     "message": "VARHub is VARLab's web marketing platform: projects, AR via QR code, feedback and notifications. A Conestoga College capstone project."
   },
   "home.tagline": {
-    "message": "A web platform that showcases VARLab's projects with augmented reality experiences, visitor feedback and offline access."
+    "message": "Scan a QR code and explore VARLab's projects in augmented reality and 360° video, right on your phone."
   },
   "home.docs": {
     "message": "Read the documentation"

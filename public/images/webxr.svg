@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 340" role="img" aria-label="WebXR experience">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4c1d95"/><stop offset="0.6" stop-color="#6d28d9"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs>
+  <rect width="640" height="340" fill="url(#g)"/>
+  <g fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity="0.95" transform="translate(320 160)"><rect x="-70" y="-34" width="140" height="68" rx="26"/><circle cx="-34" r="12"/><circle cx="34" r="12"/><path d="M-12 8q12 8 24 0"/></g>
+  <text x="320" y="285" text-anchor="middle" font-family="system-ui, sans-serif" font-size="26" fill="#fff" opacity="0.9">WebXR experience</text>
+</svg>

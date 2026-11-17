@@ -2,20 +2,20 @@
 
 [English](README.en.md) · **Português**
 
-Plataforma web de marketing do **VARLab**: galeria de projetos, AR por QR Code (WebXR, Three.js, A-Frame), feedback, PWA e notificações push. Foi o meu **projeto final no Conestoga College**.
+Plataforma web de marketing do **VARLab**: o visitante escaneia um QR Code e explora projetos em **AR (modelos 3D)** e **vídeo 360°** no celular, e deixa feedback sem precisar de conta. A equipe tem um painel com métricas e QR Codes para imprimir. Foi o meu **projeto final no Conestoga College**.
 
 📖 Documentação: https://ettorecsenatore.github.io/varhub-client/ (português e inglês)
 
 Este repositório é o **cliente** (React 19 + Vite). A API está em [varhub-server](https://github.com/EttoreCSenatore/varhub-server).
 
-![Página inicial do VARHub](website/static/img/screenshots/app-home.png)
+<img src="website/static/img/screenshots/app-home.png" alt="Página inicial do VARHub no celular" width="280">
 
 ## Rodando localmente
 
 ```bash
-npm ci --allow-git=all   # o A-Frame traz uma dependência buscada do GitHub
-cp .env.example .env     # VITE_API_URL=http://localhost:5000
-npm run dev
+npm ci
+npm run dev              # o Vite repassa /api para http://localhost:5000
+npm run dev:phone        # HTTPS na rede local, para testar câmera e AR no celular
 ```
 
 Veja [Desenvolvimento](https://ettorecsenatore.github.io/varhub-client/docs/tecnico/desenvolvimento) para subir o servidor e o banco. Vulnerabilidades: [SECURITY.md](SECURITY.md).

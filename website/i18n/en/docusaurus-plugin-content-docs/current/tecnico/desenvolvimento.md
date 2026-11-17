@@ -9,23 +9,20 @@ sidebar_position: 5
 ## Requirements
 
 - Node.js 20 or newer and npm.
-- Local PostgreSQL or a [Neon](https://neon.tech/) account.
-- A Firebase project (only for push notifications).
+- PostgreSQL 15+ (easiest with Docker) or a [Neon](https://neon.tech/) account.
 
-## Server
+## 1. Database and server
 
 ```bash
+docker run -d --name varhub-pg -e POSTGRES_PASSWORD=dev -e POSTGRES_DB=varhub \
+  -p 127.0.0.1:5433:5432 postgres:17-alpine
+
 git clone https://github.com/EttoreCSenatore/varhub-server
 cd varhub-server
 npm install
-cp .env.example .env   # fill in JWT_SECRET and the database details
-```
-
-Create the tables and start the server:
-
-```bash
-psql "postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require" -f db/schema.sql
-npm start
+cp .env.example .env     # fill in JWT_SECRET, DB_PORT=5433, DB_PASSWORD=dev, DB_SSL=false
+npm run db:seed          # creates the tables and demo projects
+npm run dev
 ```
 
 Environment variables (`.env.example`):
@@ -34,35 +31,59 @@ Environment variables (`.env.example`):
 |---|---|
 | `PORT` | Server port (default 5000). |
 | `ALLOWED_ORIGINS` | CORS origins, comma-separated. |
-| `JWT_SECRET` | Long random secret used to sign tokens. |
+| `JWT_SECRET` | Long random secret (`openssl rand -hex 32`). |
 | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | PostgreSQL connection. |
-| `DB_SSL_REJECT_UNAUTHORIZED` | `true` (default) verifies the database certificate. |
-| `FIREBASE_SERVICE_ACCOUNT` | Service-account JSON on one line (or a `serviceAccountKey.json` file). |
+| `DB_SSL` | `false` for a local database; TLS is used by default outside localhost. |
+| `FIREBASE_SERVICE_ACCOUNT` | Only for the admin push route. |
 
-Without `FIREBASE_SERVICE_ACCOUNT`, only notifications fail; everything else works. The server starts even without a database, and `/health` reports `database: "disconnected"`.
+### Create an admin
 
-## Client
+Sign up in the app, then promote the account:
+
+```bash
+npm run admin:promote -- you@example.com
+```
+
+### Tests
+
+```bash
+docker exec varhub-pg psql -U postgres -c "CREATE DATABASE varhub_test"
+npm test                 # integration tests against PostgreSQL
+```
+
+## 2. Client
 
 ```bash
 git clone https://github.com/EttoreCSenatore/varhub-client
 cd varhub-client
-npm ci --allow-git=all   # A-Frame brings a dependency fetched from GitHub
-cp .env.example .env     # VITE_API_URL=http://localhost:5000
-npm run dev
+npm ci
+npm run dev              # http://localhost:5173 (Vite forwards /api to the server)
 ```
 
-Open `http://localhost:5173`. The camera and WebXR need **HTTPS** or `localhost`.
+Other commands: `npm test`, `npm run lint`, `npm run build`.
 
-Other commands: `npm run build`, `npm run preview`, `npm run lint`.
+## 3. Test on your phone
 
-## This documentation
+The camera (QR codes) and AR only work on **HTTPS** pages. With the phone on the **same Wi-Fi network**:
+
+```bash
+npm run dev:phone        # HTTPS on the local network, development certificate
+```
+
+Open `https://<computer-IP>:5173` on the phone and accept the development certificate warning. The API goes through the same address, so nothing else needs changing. Check:
+
+1. **Scan**: point at the QR code downloaded from the dashboard and see the project open.
+2. **3D/AR**: open the astronaut project and tap **View in your space**.
+3. **360°**: tap Play, drag, and try **Use phone motion**.
+4. **Install**: browser menu, "Add to home screen", and open it offline.
+
+## 4. This documentation
 
 ```bash
 cd website
-npm ci --allow-git=all
-npm start            # development server
-npm run build        # builds both languages
-npm run typecheck
+npm ci
+npm start                # development server
+npm run build            # builds both languages
 ```
 
 The documentation is bilingual: Portuguese lives in `website/docs/` and English in `website/i18n/en/docusaurus-plugin-content-docs/current/`. The `scripts/checar-traducao.py` script fails CI if the two versions do not have the same structure.
