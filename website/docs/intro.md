@@ -7,46 +7,56 @@ sidebar_position: 1
 
 # VARHub
 
-**VARHub** é uma plataforma web de marketing criada para o **VARLab** apresentar seus projetos, serviços e inovações por meio de experiências de **realidade aumentada (AR)** e ferramentas de engajamento dos visitantes.
+**VARHub** é uma plataforma web de marketing criada para o **VARLab** apresentar seus projetos por meio de **realidade aumentada (AR)** e **vídeo 360°**, direto no navegador do celular, sem instalar nada.
 
-Foi o **projeto final** do programa no **Conestoga College**. O sistema tem duas partes, em dois repositórios:
+Foi o meu **projeto final** no **Conestoga College**. O sistema tem duas partes, em dois repositórios:
 
 | Parte | Repositório | O que faz |
 |---|---|---|
-| **Cliente** | [varhub-client](https://github.com/EttoreCSenatore/varhub-client) | Aplicativo web React (PWA) com galeria, leitor de QR Code e visualizadores AR/VR. |
-| **Servidor** | [varhub-server](https://github.com/EttoreCSenatore/varhub-server) | API Express com PostgreSQL: contas, projetos, feedback, analytics e notificações. |
+| **Cliente** | [varhub-client](https://github.com/EttoreCSenatore/varhub-client) | Aplicativo web React (PWA), pensado primeiro para o celular. |
+| **Servidor** | [varhub-server](https://github.com/EttoreCSenatore/varhub-server) | API Express com PostgreSQL: projetos, feedback, eventos de uso, contas e painel. |
 
-![Página inicial do VARHub](/img/screenshots/app-home.png)
+![Página inicial do VARHub no celular](/img/screenshots/app-home.png)
 
-## O que ele faz
+## Como o visitante usa
+
+1. **Escaneia** um QR Code do VARLab (pelo leitor do app ou pela câmera do celular) e cai direto na página do projeto.
+2. **Explora**: gira um modelo 3D e o coloca no ambiente com AR, ou olha ao redor em um vídeo 360°.
+3. **Avalia**: dá de 1 a 5 estrelas e deixa um comentário, sem precisar de conta.
+
+## O que a equipe do VARLab faz
+
+Entra com uma conta de administrador e, no **painel**, vê escaneamentos, lançamentos de AR e avaliações dos últimos 14 dias, cadastra e publica projetos e **baixa o QR Code** de cada um para imprimir.
+
+![Lista de projetos no celular](/img/screenshots/app-projects.png)
+
+## Recursos
 
 | Recurso | Para quê |
 |---|---|
-| **Galeria de projetos** | Lista os projetos do VARLab e as demonstrações WebXR, só para quem entrou na conta. |
-| **Leitor de QR Code** | Lê um QR Code pela câmera e abre o conteúdo associado: vídeo (com visor 360°) ou um link externo. |
-| **Visualizadores AR/VR** | Vídeo 360° (A-Frame), modelos 3D (Three.js) e demonstrações WebXR no navegador. |
-| **Contas** | Cadastro e login com senha (bcrypt) e token JWT de 24 horas. |
-| **Feedback** | Avaliação de 1 a 5 com comentário, ligada a um projeto e a quem a enviou. |
-| **PWA e offline** | Instalável, com service worker (Workbox) e cache de imagens e modelos. |
-| **Notificações push** | Firebase Cloud Messaging, enviadas pelo servidor. |
-| **Analytics** | Registro de visualizações e feedbacks (`engagement_logs`), consultável só por quem está autenticado. |
+| **Galeria pública** | Busca e filtro por tipo (3D/AR, vídeo 360°, demo WebXR, link). Sem login. |
+| **Leitor de QR Code** | Câmera ao vivo ou foto do QR; abre o projeto dentro do app. |
+| **AR para modelos 3D** | `<model-viewer>`: AR no Android (WebXR ou Scene Viewer) e no iPhone (Quick Look). |
+| **Vídeo 360°** | Arraste para olhar ao redor, ou use o movimento do celular. |
+| **Feedback** | Nota e comentário, anônimos ou ligados à conta; resumo público sem dados do autor. |
+| **PWA e offline** | Instalável; a lista de projetos e as mídias ficam em cache. |
+| **Painel administrativo** | Métricas, gestão de projetos e QR Codes para imprimir. |
 
 ## Tecnologias
 
 | Camada | Tecnologia |
 |---|---|
-| Frontend | React 19, Vite, React Router, Bootstrap, Three.js, React Three Fiber, A-Frame, WebXR |
-| QR Code | `html5-qrcode` e `jsQR` |
-| Backend | Node.js, Express 4, `pg`, `jose`, `bcryptjs`, Helmet, `express-rate-limit` |
+| Frontend | React 19, Vite, React Router, Bootstrap, `@google/model-viewer`, Three.js, `jsQR`, `qrcode` |
+| Backend | Node.js, Express, `pg`, `jose` (JWT), `bcryptjs`, Helmet, `express-rate-limit` |
 | Banco | PostgreSQL (Neon Serverless) |
-| Notificações | Firebase Cloud Messaging e Firebase Admin |
-| Hospedagem | Vercel (cliente) e Railway (servidor); vídeos 360° em AWS S3 |
+| Testes | Vitest e Testing Library (cliente); `node:test` com PostgreSQL real (servidor) |
+| Hospedagem | Vercel (cliente) e Railway (servidor); documentação no GitHub Pages |
 
 ## Onde continuar
 
 - [Arquitetura](tecnico/arquitetura): como as peças se conectam.
-- [AR e QR Code](tecnico/ar-e-qr): como o conteúdo imersivo é aberto.
+- [AR e QR Code](tecnico/ar-e-qr): como o conteúdo imersivo abre no celular.
 - [API](tecnico/api): rotas, autenticação e erros.
 - [Segurança](tecnico/seguranca): o que está protegido e o que ainda falta.
-- [Desenvolvimento](tecnico/desenvolvimento): como rodar tudo localmente.
+- [Desenvolvimento](tecnico/desenvolvimento): como rodar tudo e testar no celular.
 - [Roadmap](roadmap): o que foi entregue e o que ficou planejado.

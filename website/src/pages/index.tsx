@@ -10,24 +10,24 @@ type Feature = {title: string; body: string};
 
 const features: Feature[] = [
   {
-    title: translate({id: 'home.feature.0.title', message: 'Galeria de projetos'}),
-    body: translate({id: 'home.feature.0.body', message: 'Os projetos do VARLab e demonstrações WebXR, com acesso restrito a quem entrou na conta.'}),
+    title: translate({id: 'home.feature.0.title', message: 'Galeria pública'}),
+    body: translate({id: 'home.feature.0.body', message: 'Os projetos do VARLab com busca e filtros, abertos a qualquer visitante, sem conta.'}),
   },
   {
     title: translate({id: 'home.feature.1.title', message: 'AR por QR Code'}),
-    body: translate({id: 'home.feature.1.body', message: 'Aponte a câmera para um QR Code e abra vídeos, inclusive em visor 360°, ou links direto no navegador.'}),
+    body: translate({id: 'home.feature.1.body', message: 'Escaneie um QR Code e abra modelos 3D com AR ou vídeos 360° direto no navegador do celular.'}),
   },
   {
-    title: translate({id: 'home.feature.2.title', message: 'Contas e feedback'}),
-    body: translate({id: 'home.feature.2.body', message: 'Cadastro e login com JWT, e um formulário de avaliação ligado a cada projeto.'}),
+    title: translate({id: 'home.feature.2.title', message: 'Feedback em um toque'}),
+    body: translate({id: 'home.feature.2.body', message: 'Nota de 1 a 5 e comentário sem precisar de conta; o painel mostra o resultado.'}),
   },
   {
-    title: translate({id: 'home.feature.3.title', message: 'PWA e notificações'}),
-    body: translate({id: 'home.feature.3.body', message: 'Instalável, com cache offline e notificações push pelo Firebase Cloud Messaging.'}),
+    title: translate({id: 'home.feature.3.title', message: 'PWA e offline'}),
+    body: translate({id: 'home.feature.3.body', message: 'Instalável, com a lista de projetos e as mídias em cache para uso sem internet.'}),
   },
   {
     title: translate({id: 'home.feature.4.title', message: 'API própria'}),
-    body: translate({id: 'home.feature.4.body', message: 'Servidor Express com PostgreSQL (Neon), protegido com Helmet, limite de tentativas e rotas autenticadas.'}),
+    body: translate({id: 'home.feature.4.body', message: 'Servidor Express com PostgreSQL (Neon), papéis, limites de requisição e testes de integração.'}),
   },
   {
     title: translate({id: 'home.feature.5.title', message: 'Código aberto'}),
@@ -56,7 +56,7 @@ export default function Home(): ReactNode {
             VARHub
           </Heading>
           <p className={styles.tagline}>
-            <Translate id="home.tagline">Plataforma web que apresenta os projetos do VARLab com experiências de realidade aumentada, feedback dos visitantes e acesso offline.</Translate>
+            <Translate id="home.tagline">Escaneie um QR Code e explore os projetos do VARLab em realidade aumentada e vídeo 360°, direto no celular.</Translate>
           </p>
           <div className={styles.roles}>
             {roles.map((r) => (

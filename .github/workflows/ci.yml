@@ -25,9 +25,9 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      # A-Frame depends on a package fetched from GitHub (three-bmfont-text)
-      - run: npm ci --allow-git=all
+      - run: npm ci
       - run: npm run lint
+      - run: npm test
       - run: npm run build
 
   docs:
@@ -45,7 +45,7 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: website/package-lock.json
-      - run: npm ci --allow-git=all
+      - run: npm ci
       - run: npm run typecheck
       - name: Documentation in Portuguese and English (same structure)
         run: python3 ../scripts/checar-traducao.py

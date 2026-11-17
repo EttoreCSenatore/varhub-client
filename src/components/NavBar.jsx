@@ -1,112 +1,51 @@
-import React, { useState } from 'react';  
-import { Link, useLocation } from 'react-router-dom';  
-import { Navbar, Nav, Container, Button, Dropdown } from 'react-bootstrap';
-import { QrCodeScan, CameraVideoFill, PersonCircle } from 'react-bootstrap-icons';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Container, Nav, Navbar } from 'react-bootstrap';
+import { BoxArrowRight, QrCodeScan } from 'react-bootstrap-icons';
 import { useAuth } from '../context/AuthContext';
 
-const NavBar = () => {  
-  const location = useLocation();
-  const [expanded, setExpanded] = useState(false);
-  const { currentUser, logout } = useAuth();
+export default function NavBar() {
+  const { user, isAdmin, logout } = useAuth();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
 
-  const isActive = (path) => location.pathname === path;
-  
-  const handleLogout = () => {
-    logout();
-    setExpanded(false);
-  };
-  
-  const scrollToLogin = () => {
-    // If on homepage, scroll to login section
-    if (location.pathname === '/') {
-      const loginSection = document.getElementById('login-section');
-      if (loginSection) {
-        loginSection.scrollIntoView({ behavior: 'smooth' });
-      }
-      setExpanded(false);
-    }
-  };
-  
-  return (  
-    <Navbar bg="primary" variant="dark" expand="lg" fixed="top" expanded={expanded} className="shadow-sm">
+  return (
+    <Navbar expand="md" className="vh-nav" sticky="top" collapseOnSelect>
       <Container>
         <Navbar.Brand as={Link} to="/" className="fw-bold">
-          VARhub
+          <img src="/logo192.png" alt="" width="28" height="28" className="me-2 rounded" />
+          VARHub
         </Navbar.Brand>
-        <Navbar.Toggle 
-          aria-controls="responsive-navbar-nav" 
-          onClick={() => setExpanded(expanded ? false : "expanded")}
-        />
-        <Navbar.Collapse id="responsive-navbar-nav">
+        <Navbar.Toggle aria-controls="main-nav" />
+        <Navbar.Collapse id="main-nav">
           <Nav className="me-auto">
-            <Nav.Link 
-              as={Link} 
-              to="/" 
-              active={isActive('/')}
-              onClick={() => setExpanded(false)}
-            >
-              Home
-            </Nav.Link>
-            <Nav.Link 
-              as={Link} 
-              to="/projects" 
-              active={isActive('/projects')}
-              onClick={() => setExpanded(false)}
-            >
-              Projects
-            </Nav.Link>
+            <Nav.Link as={NavLink} to="/projects" eventKey="projects">Projects</Nav.Link>
+            <Nav.Link as={NavLink} to="/scan" eventKey="scan">Scan QR</Nav.Link>
+            {isAdmin && <Nav.Link as={NavLink} to="/admin" eventKey="admin">Admin</Nav.Link>}
           </Nav>
-          <Nav>
-            <Button 
-              variant="outline-light" 
-              className="me-2 d-flex align-items-center"
-              as={Link}
-              to="/scan"
-              onClick={() => setExpanded(false)}
-            >
-              <QrCodeScan className="me-2" /> Scan QR
-            </Button>
-            
-            {currentUser ? (
-              <Dropdown align="end">
-                <Dropdown.Toggle variant="light" id="user-dropdown" className="d-flex align-items-center">
-                  <PersonCircle className="me-2" />
-                  {currentUser.name}
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                  <Dropdown.Item onClick={handleLogout}>
-                    Logout
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
+          <Nav className="align-items-md-center gap-md-2">
+            {user ? (
+              <>
+                <span className="navbar-text small">Hi, {user.name.split(' ')[0]}</span>
+                <Nav.Link
+                  as="button"
+                  className="btn btn-link text-start"
+                  onClick={() => { logout(); navigate('/'); }}
+                >
+                  <BoxArrowRight className="me-1" aria-hidden /> Sign out
+                </Nav.Link>
+              </>
             ) : (
-              location.pathname === '/' ? (
-                <Nav.Link 
-                  href="#login-section" 
-                  className="btn btn-light text-primary"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    scrollToLogin();
-                  }}
-                >
-                  Login
-                </Nav.Link>
-              ) : (
-                <Nav.Link 
-                  as={Link} 
-                  to="/" 
-                  className="btn btn-light text-primary"
-                  onClick={() => setExpanded(false)}
-                >
-                  Login
-                </Nav.Link>
-              )
+              <Nav.Link as={NavLink} to="/login" eventKey="login">Sign in</Nav.Link>
             )}
           </Nav>
         </Navbar.Collapse>
       </Container>
+      {/* On phones the main action is always one tap away. */}
+      {pathname !== '/scan' && (
+        <Link to="/scan" className="vh-fab d-md-none" aria-label="Scan a QR code">
+          <QrCodeScan size={26} aria-hidden />
+        </Link>
+      )}
     </Navbar>
-  );  
-};  
-
-export default NavBar;
+  );
+}

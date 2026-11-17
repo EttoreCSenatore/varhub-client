@@ -6,40 +6,45 @@ sidebar_position: 4
 
 # Security
 
-This page records what the API protects today, the fixes made in the post-graduation review, and what is still missing.
+What the application protects today, what was fixed in the post-graduation review, and what is still missing.
 
 ## Current protections
 
-- **Passwords** hashed with `bcryptjs` (cost 10); minimum 8 characters.
-- **JWT** HS256 valid for 24 hours, signed with `JWT_SECRET` (`jose` library).
-- **Sensitive routes** (`/api/analytics`, `/api/feedback`, `/api/notifications/send-notification`) require a token.
-- **Feedback `userId` comes from the token**, not the request body, so nobody can rate on behalf of someone else.
-- **Validation** of the rating (1 to 5), `projectId` and comment length (2000 characters); JSON body limited to 100 KB.
-- **Helmet** (security headers) and **rate limiting** on login and sign-up.
-- **CORS** only for the origins in `ALLOWED_ORIGINS`.
-- **Database TLS verified** by default (`DB_SSL_REJECT_UNAUTHORIZED=true`).
-- Queries are always **parameterized** (no SQL concatenation).
+- **Passwords** hashed with `bcryptjs` (cost 12), 8 to 128 characters; login compares in constant time even for unknown emails.
+- **JWT** HS256 valid for 24 hours (`jose`), with a `JWT_SECRET` of at least 16 characters (the server will not start in production without it).
+- **Roles**: admin routes check the role **in the database**, so a demoted admin loses access immediately.
+- **Anonymous, but limited**: feedback and events accept visitors without an account, with per-IP rate limits and a fixed list of actions.
+- **Feedback privacy**: the public summary never shows who wrote it.
+- **Validation**: rating 1 to 5, maximum lengths, type and status from a list, and `http(s)`-only URLs (prevents `javascript:` in links).
+- **Helmet**, JSON body limited to 100 KB, **CORS** only for `ALLOWED_ORIGINS` and **database TLS verified** outside localhost.
+- **Parameterized SQL** in every query.
+- **Third-party QR codes**: the scanner never opens a link by itself; it shows the address and asks for a tap.
+- No runtime dependencies loaded from a CDN.
+- `npm audit` runs in the server CI and fails on high-severity vulnerabilities.
 
-## What was fixed
+## What was fixed in the review
 
 | Problem found | Fix |
 |---|---|
-| `jsonwebtoken` used in code but missing from `package.json` | Replaced by `jose`, declared as a dependency. |
-| `/api/analytics` and `/api/notifications` were open | Now require a JWT. |
-| Feedback wrote to a `comments` column that does not exist (`comment`) | Column fixed. |
-| Feedback accepted `userId` from the body | `userId` comes from the token. |
-| Project views always logged as user 1 | Uses the token's user or `NULL`. |
-| `rejectUnauthorized: false` disabled TLS verification | Verification on by default. |
-| Native `bcrypt` failed to build on recent Node versions | Replaced by `bcryptjs`. |
+| `jsonwebtoken` used but missing from `package.json`; native `bcrypt` failed on recent Node | `jose` and `bcryptjs`, declared. |
+| `/api/analytics` and `/api/notifications` were open | Admins only. |
+| Feedback wrote to the wrong column and trusted the body's `userId` | Column fixed; the user comes from the token. |
+| Every view was counted as user 1 | Explicit events, anonymous or the token's user. |
+| Database TLS was not verified | Verification on by default. |
+| API projects showed up blank (different field names) | One normalized shape. |
+| `webxr-polyfill@latest` script loaded from a CDN with no pinned version | Removed. |
+| Firebase keys in code and push code that never ran | Removed from the client. |
+| Server dependencies with high-severity vulnerabilities | `npm audit fix`; audit in CI. |
+| Personal email in old commits | History rewritten to GitHub's noreply email. |
 
 ## What is still missing
 
-- **User roles**: any authenticated account can read analytics and send pushes. An admin role is missing.
-- **Firebase config in code**: `src/firebase.js` and `firebase-messaging-sw.js` contain the API key and the public VAPID key. They are public identifiers by design, but should be origin-restricted in the Firebase console.
 - **Token in `localStorage`**: exposed to XSS. An `HttpOnly` cookie would be safer.
-- **Public CORS proxies** for S3 videos (see [AR and QR code](ar-e-qr)).
-- **Automated tests** for authorization.
-- **Git history** containing the author's personal email in old commits.
+- **Public comments without moderation**: React escapes the text, but there is no way to hide abuse.
+- **Sign-up without email verification**.
+- **Promotion to admin** is script-only (`npm run admin:promote`), on purpose.
+- **A strict CSP header**: `<model-viewer>` and Three.js need careful tuning.
+- **End-to-end browser tests**.
 
 ## Reporting a vulnerability
 
