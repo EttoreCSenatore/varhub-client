@@ -35,10 +35,10 @@ O que a aplicação protege hoje, o que foi corrigido na revisão pós-formatura
 | Script `webxr-polyfill@latest` carregado de CDN sem versão fixa | Removido. |
 | Chaves do Firebase no código e código de push que nunca rodava | Removidos do cliente. |
 | Dependências do servidor com vulnerabilidades altas | `npm audit fix`; auditoria no CI. |
+| E-mail pessoal nos commits antigos | Histórico dos dois repositórios reescrito para o e-mail noreply do GitHub. |
 
 ## O que ainda falta
 
-- **E-mail pessoal nos commits antigos** dos dois repositórios: a reescrita do histórico para o e-mail noreply do GitHub está pendente.
 - **Token no `localStorage`**: exposto a XSS. Um cookie `HttpOnly` seria mais seguro.
 - **Comentários públicos sem moderação**: o React escapa o texto, mas falta uma forma de ocultar abusos.
 - **Cadastro sem verificação de e-mail**.
