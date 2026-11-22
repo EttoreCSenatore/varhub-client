@@ -24,7 +24,12 @@ trap cleanup EXIT
 
 docker network create "$NET" >/dev/null
 start_db() { docker run -d --name "$1" --network "$NET" -e POSTGRES_PASSWORD=test -e POSTGRES_USER=varhub -e POSTGRES_DB=varhub "$PG_IMAGE" >/dev/null
-  for _ in $(seq 1 30); do docker exec "$1" pg_isready -U varhub -d varhub >/dev/null 2>&1 && return 0; sleep 1; done
+  # The image starts a temporary server to initialise, stops it, then starts the real one: it is ready only
+  # after the "ready to accept connections" message appears the second time.
+  for _ in $(seq 1 60); do
+    [ "$(docker logs "$1" 2>&1 | grep -c 'ready to accept connections')" -ge 2 ] && docker exec "$1" pg_isready -U varhub -d varhub >/dev/null 2>&1 && return 0
+    sleep 1
+  done
   echo "Database $1 did not start" >&2; exit 1; }
 count() { docker exec "$1" psql -U varhub -d varhub -tA -c "SELECT (SELECT COUNT(*) FROM projects) || '/' || (SELECT COUNT(*) FROM users) || '/' || (SELECT COUNT(*) FROM feedback) || '/' || (SELECT COUNT(*) FROM schema_migrations)"; }
 
