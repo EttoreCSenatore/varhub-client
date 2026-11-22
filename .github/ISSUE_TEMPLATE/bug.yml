@@ -1,0 +1,24 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Please do not report security problems here. Use the private advisory link in SECURITY.md."
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Shown in the footer of the site, or at /api/version.
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce

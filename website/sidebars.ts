@@ -14,6 +14,12 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
+      label: 'Projeto',
+      collapsed: false,
+      items: ['projeto/decisoes', 'projeto/versoes'],
+    },
+    {
+      type: 'category',
       label: 'Técnico',
       collapsed: false,
       items: [

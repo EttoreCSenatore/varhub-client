@@ -13,6 +13,7 @@ const ProjectPage = lazy(() => import('./pages/ProjectPage'));
 const ScanPage = lazy(() => import('./pages/ScanPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
+const WhatsNewPage = lazy(() => import('./pages/WhatsNewPage'));
 
 function AdminRoute({ children }) {
   const { user, isAdmin, loading } = useAuth();
@@ -36,6 +37,7 @@ export default function App() {
               <Route path="/projects/:id" element={<ProjectPage />} />
               <Route path="/scan" element={<ScanPage />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/whats-new" element={<WhatsNewPage />} />
               <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
               <Route path="*" element={<div className="container py-5 text-center"><h1 className="h4">Page not found</h1></div>} />
             </Routes>

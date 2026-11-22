@@ -138,3 +138,34 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e  # v4.0.5
+
+  # GitHub Release of each new version: after the image is published, the version of package.json
+  # (the top of releases.yaml; the tests check they match) gets its tag vX.Y.Z and its release, with
+  # the notes from releases.yaml, when they do not exist yet. Nobody has to remember.
+  release:
+    needs: [publish]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # tag and release
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Release of the new version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "v$VERSION is already published."
+            exit 0
+          fi
+          node scripts/release-notes.js "$VERSION" --title > title.txt
+          node scripts/release-notes.js "$VERSION" > notes.md
+          gh release create "v$VERSION" --target "$GITHUB_SHA" --title "$(cat title.txt)" --notes-file notes.md --latest

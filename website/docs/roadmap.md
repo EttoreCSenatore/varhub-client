@@ -79,12 +79,12 @@ Pronto quando: a URL pública funciona em um celular, o painel mostra dados, e u
 
 Objetivo: histórico claro e um repositório fácil de contribuir.
 
-- [ ] SemVer e um `releases.yaml` como fonte única do histórico, com tipos `new`, `improvement`, `fix` e `security`. (M)
-- [ ] O CI cria a tag e o GitHub Release quando a versão sobe; página "O que há de novo" no app. (M)
-- [ ] Registro de decisões na documentação, com as decisões já tomadas (dois repositórios, AGPL, `jose`, `<model-viewer>`, feedback anônimo, PWA em vez de app nativo). (M)
-- [ ] CONTRIBUTING, CODE_OF_CONDUCT, NOTICE (marcas), CODEOWNERS e modelos de issue e PR. (P)
-- [ ] Dependabot (semanal para bibliotecas, mensal para Actions) e Actions fixadas por commit. (P)
-- [ ] Regra de proteção do `main` (sem force-push, PR obrigatório, CI verde). (P)
+- [x] SemVer e um `releases.yaml` como fonte única do histórico, com tipos `new`, `improvement`, `fix` e `security`. (M)
+- [x] O CI cria a tag e o GitHub Release quando a versão sobe; página "O que há de novo" no app. (M)
+- [x] Registro de decisões na documentação, com as decisões já tomadas (dois repositórios, AGPL, `jose`, `<model-viewer>`, feedback anônimo, PWA em vez de app nativo). (M)
+- [x] CONTRIBUTING, CODE_OF_CONDUCT, NOTICE (marcas), CODEOWNERS e modelos de issue e PR. (P)
+- [x] Dependabot (semanal para bibliotecas, mensal para Actions) e Actions fixadas por commit. (P)
+- [x] Regra de proteção do `main` (sem force-push, PR obrigatório, CI verde). (P)
 
 Pronto quando: subir a versão e mesclar publica um release sozinho.
 
