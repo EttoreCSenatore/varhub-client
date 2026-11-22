@@ -8,6 +8,12 @@ const sidebars: SidebarsConfig = {
     'roadmap',
     {
       type: 'category',
+      label: 'Operação',
+      collapsed: false,
+      items: ['operacao/instalacao', 'operacao/backup-e-restauracao', 'operacao/atualizacao-e-monitoramento'],
+    },
+    {
+      type: 'category',
       label: 'Técnico',
       collapsed: false,
       items: [

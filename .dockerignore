@@ -1,0 +1,14 @@
+node_modules
+dist
+dev-dist
+.git
+.github
+.env
+.env.*
+!.env.example
+website
+docs
+deploy/*.sh
+deploy/*.service
+deploy/*.timer
+*.md

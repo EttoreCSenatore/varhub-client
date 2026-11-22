@@ -3,6 +3,9 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 import { VitePWA } from 'vite-plugin-pwa';
+import { readFileSync } from 'node:fs';
+
+const { version: appVersion } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 
 // `npm run dev:phone` serves over HTTPS on your LAN: phones only allow the camera (QR scanner) and WebXR on secure pages.
 const phone = process.env.VITE_HTTPS === '1';
@@ -20,6 +23,7 @@ const brandFor = (mode) => {
 export default defineConfig(({ mode }) => {
   const brand = brandFor(mode);
   return {
+  define: { 'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion) },
   plugins: [
     react(),
     { name: 'brand-html', transformIndexHtml: (html) => html.replaceAll('%BRAND_NAME%', brand.name).replaceAll('%TAGLINE%', brand.tagline) },

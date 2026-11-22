@@ -1,0 +1,7 @@
+[Unit]
+Description=VARHub public demo reset (DEMO SERVERS ONLY)
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/varhub/deploy/demo-reset.sh
