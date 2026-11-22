@@ -1,0 +1,59 @@
+# Release history: the single source for version notes, shown on the What's new page and in the GitHub Release.
+# The top entry must match package.json. CI creates the tag and the Release from it (scripts/release-notes.js).
+# kind: new | improvement | fix | security
+- version: 2.1.0
+  date: 2026-11-22
+  title:
+    en: Production stack, backups and release notes
+    pt-br: Pilha de produção, backups e notas de versão
+  items:
+    - kind: new
+      text:
+        en: A web image (the app served by Caddy with automatic HTTPS and security headers) and a production Docker Compose with PostgreSQL, the API and the web.
+        pt-br: Uma imagem do site (o app servido pelo Caddy, com HTTPS automático e cabeçalhos de segurança) e um Docker Compose de produção com PostgreSQL, API e site.
+    - kind: new
+      text:
+        en: Daily verified database backups, a restore script, and an automated backup-and-restore test in CI.
+        pt-br: Backups diários verificados do banco, um script de restauração e um teste automático de backup e restauração no CI.
+    - kind: new
+      text:
+        en: The footer shows the app and API versions, and this What's new page lists every release.
+        pt-br: O rodapé mostra as versões do app e da API, e esta página "O que há de novo" lista todas as versões.
+    - kind: new
+      text:
+        en: Documentation for installing, backing up, restoring, upgrading and monitoring a server, in Portuguese and English, plus a decision log.
+        pt-br: Documentação de instalação, backup, restauração, atualização e monitoramento de um servidor, em português e inglês, e um registro de decisões.
+    - kind: improvement
+      text:
+        en: CI pins third-party actions by commit and Dependabot keeps dependencies, actions and images current.
+        pt-br: O CI fixa as actions de terceiros por commit e o Dependabot mantém dependências, actions e imagens atualizadas.
+- version: 2.0.0
+  date: 2026-11-17
+  title:
+    en: Phone-first rework
+    pt-br: Reformulação para o celular
+  items:
+    - kind: new
+      text:
+        en: Public gallery and project pages with no login wall; the QR scanner opens projects inside the app.
+        pt-br: Galeria e páginas de projeto públicas, sem exigir login; o leitor de QR Code abre os projetos dentro do app.
+    - kind: new
+      text:
+        en: 3D models with AR on Android and iPhone (model-viewer) and a 360° video viewer with optional phone motion.
+        pt-br: Modelos 3D com AR no Android e no iPhone (model-viewer) e um visualizador de vídeo 360° com movimento do celular opcional.
+    - kind: new
+      text:
+        en: Anonymous feedback, usage events and an admin dashboard with metrics, project management and printable QR codes.
+        pt-br: Feedback anônimo, eventos de uso e um painel de administração com métricas, gestão de projetos e QR Codes para imprimir.
+    - kind: new
+      text:
+        en: Bilingual documentation (Português and English) and an "Adapt it to your business" guide; configurable name, organization and tagline.
+        pt-br: Documentação bilíngue (português e inglês) e um guia "Adaptar ao seu negócio"; nome, organização e frase configuráveis.
+    - kind: improvement
+      text:
+        en: The first screen loads about 300 KB of JavaScript instead of about 3.5 MB; the PWA caches the project list and media.
+        pt-br: A primeira tela carrega cerca de 300 KB de JavaScript em vez de cerca de 3,5 MB; o PWA guarda em cache a lista de projetos e as mídias.
+    - kind: security
+      text:
+        en: Removed the dead Firebase client and the unpinned CDN script; relicensed to AGPL-3.0-or-later.
+        pt-br: Removidos o cliente Firebase sem uso e o script de CDN sem versão fixa; relicenciado para AGPL-3.0-or-later.

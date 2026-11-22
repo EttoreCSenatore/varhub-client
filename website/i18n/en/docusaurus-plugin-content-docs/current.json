@@ -10,5 +10,9 @@
   "sidebar.docsSidebar.category.Operação": {
     "message": "Operations",
     "description": "The label for category 'Operação' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Projeto": {
+    "message": "Project",
+    "description": "The label for category 'Projeto' in sidebar 'docsSidebar'"
   }
 }

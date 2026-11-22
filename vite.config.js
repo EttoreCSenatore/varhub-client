@@ -4,12 +4,25 @@ import react from '@vitejs/plugin-react';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 import { VitePWA } from 'vite-plugin-pwa';
 import { readFileSync } from 'node:fs';
+import { parse as parseYaml } from 'yaml';
 
 const { version: appVersion } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 
 // `npm run dev:phone` serves over HTTPS on your LAN: phones only allow the camera (QR scanner) and WebXR on secure pages.
 const phone = process.env.VITE_HTTPS === '1';
 const apiTarget = process.env.VITE_PROXY_TARGET || 'http://localhost:5000';
+
+// The release history (releases.yaml) becomes the module 'virtual:releases' for the What's new page.
+const releasesFile = new URL('./releases.yaml', import.meta.url);
+const releasesPlugin = () => ({
+  name: 'varhub-releases',
+  resolveId: (id) => (id === 'virtual:releases' ? '\0virtual:releases' : null),
+  load(id) {
+    if (id !== '\0virtual:releases') return null;
+    this.addWatchFile(releasesFile.pathname);
+    return `export default ${JSON.stringify(parseYaml(readFileSync(releasesFile, 'utf8')))}`;
+  },
+});
 
 // Brand text from .env goes into index.html and the PWA manifest at build time.
 const brandFor = (mode) => {
@@ -26,6 +39,7 @@ export default defineConfig(({ mode }) => {
   define: { 'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion) },
   plugins: [
     react(),
+    releasesPlugin(),
     { name: 'brand-html', transformIndexHtml: (html) => html.replaceAll('%BRAND_NAME%', brand.name).replaceAll('%TAGLINE%', brand.tagline) },
     ...(phone ? [basicSsl()] : []),
     VitePWA({

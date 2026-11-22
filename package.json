@@ -1,7 +1,7 @@
 {
   "name": "varhub-client",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -41,7 +41,8 @@
     "jsdom": "^31.0.1",
     "vite": "^6.4.6",
     "vite-plugin-pwa": "^0.21.1",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.0",
+    "yaml": "^2.9.1"
   },
   "license": "AGPL-3.0-or-later",
   "description": "VARHub: open-source AR/VR project showcase (QR code to 3D/AR, 360 video, feedback)"

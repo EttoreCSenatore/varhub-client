@@ -79,12 +79,12 @@ Done when: the public URL works on a phone, the dashboard shows data, and a back
 
 Goal: a clear history and a repository that is easy to contribute to.
 
-- [ ] SemVer and a `releases.yaml` as the single source of the history, with kinds `new`, `improvement`, `fix` and `security`. (M)
-- [ ] CI creates the tag and the GitHub Release when the version goes up; a "What's new" page in the app. (M)
-- [ ] A decision log in the docs, with the decisions already made (two repositories, AGPL, `jose`, `<model-viewer>`, anonymous feedback, PWA instead of a native app). (M)
-- [ ] CONTRIBUTING, CODE_OF_CONDUCT, NOTICE (trademarks), CODEOWNERS and issue and PR templates. (S)
-- [ ] Dependabot (weekly for libraries, monthly for Actions) and Actions pinned by commit. (S)
-- [ ] A protection rule for `main` (no force-push, PR required, green CI). (S)
+- [x] SemVer and a `releases.yaml` as the single source of the history, with kinds `new`, `improvement`, `fix` and `security`. (M)
+- [x] CI creates the tag and the GitHub Release when the version goes up; a "What's new" page in the app. (M)
+- [x] A decision log in the docs, with the decisions already made (two repositories, AGPL, `jose`, `<model-viewer>`, anonymous feedback, PWA instead of a native app). (M)
+- [x] CONTRIBUTING, CODE_OF_CONDUCT, NOTICE (trademarks), CODEOWNERS and issue and PR templates. (S)
+- [x] Dependabot (weekly for libraries, monthly for Actions) and Actions pinned by commit. (S)
+- [x] A protection rule for `main` (no force-push, PR required, green CI). (S)
 
 Done when: bumping the version and merging publishes a release by itself.
 

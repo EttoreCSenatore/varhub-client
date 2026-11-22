@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../utils/api';
 import { brand } from '../brand';
 
@@ -16,7 +17,7 @@ export default function Footer() {
       <div className="container small d-flex flex-column flex-md-row justify-content-between gap-2">
         <span>{brand.name} · {brand.org} · powered by VARHub, an open-source AR/VR showcase (AGPL-3.0)</span>
         <span>
-          <span data-testid="versions">app v{import.meta.env.VITE_APP_VERSION}{apiVersion ? ` · api v${apiVersion}` : ''}</span>
+          <Link to="/whats-new" data-testid="versions">app v{import.meta.env.VITE_APP_VERSION}{apiVersion ? ` · api v${apiVersion}` : ''}</Link>
           {' · '}
           <a href={brand.sourceUrl} target="_blank" rel="noopener noreferrer">Source</a>
           {' · '}
