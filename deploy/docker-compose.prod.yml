@@ -1,0 +1,58 @@
+# VARHub production stack: PostgreSQL + API + web (Caddy, automatic HTTPS).
+#   cp deploy/.env.example deploy/.env   # fill in the secrets
+#   docker compose --env-file deploy/.env -f deploy/docker-compose.prod.yml up -d
+name: varhub
+services:
+  db:
+    image: postgres@sha256:f9cf3e1f0066f0eb0c48707d864f0ac5941e9ff454a072077d97a4d278d07d73
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-varhub}
+      POSTGRES_USER: ${POSTGRES_USER:-varhub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Reachable only from the other containers: no published port.
+
+  api:
+    image: ghcr.io/ettorecsenatore/varhub-server:${VARHUB_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: "5000"
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in deploy/.env}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: ${POSTGRES_DB:-varhub}
+      DB_USER: ${POSTGRES_USER:-varhub}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_SSL: "false"
+      FIREBASE_SERVICE_ACCOUNT: ${FIREBASE_SERVICE_ACCOUNT:-}
+
+  web:
+    image: ghcr.io/ettorecsenatore/varhub-web:${VARHUB_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

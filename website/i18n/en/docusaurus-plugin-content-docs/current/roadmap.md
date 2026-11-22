@@ -63,14 +63,14 @@ Sizes: **S** (up to half a day), **M** (1 to 2 days), **L** (more than 2 days). 
 
 Goal: a public installation, with a demo, that survives failures. This is the most important milestone.
 
-- [ ] Dockerfile for the server and the client (static files served by Caddy). (M)
-- [ ] `docker-compose.prod.yml` with PostgreSQL, the API and Caddy with automatic HTTPS, and a production `.env.example`. (M)
-- [ ] Publish the images to GHCR from CI. (S)
+- [x] Dockerfile for the server and the client (static files served by Caddy). (M)
+- [x] `docker-compose.prod.yml` with PostgreSQL, the API and Caddy with automatic HTTPS, and a production `.env.example`. (M)
+- [x] Publish the images to GHCR from CI. (S)
 - [ ] Reference installation on the own VPS, with its own domain. (L)
-- [ ] Public demo: a demo admin account and a nightly reset with `db:seed`. (M)
-- [ ] Daily `pg_dump` backup, 30-day retention and a **restore test** in CI. (M)
-- [ ] `/api/version` and the version in the footer; uptime and backup alerts (Healthchecks.io or Uptime Kuma). (S)
-- [ ] Operations pages in the docs: install, backup and restore, upgrade, monitoring. (M)
+- [ ] Public demo: the nightly reset and the demo account exist (`demo:reset`, systemd timer); it still has to be installed on the server. (M)
+- [x] Daily `pg_dump` backup, 30-day retention and a **restore test** in CI. (M)
+- [x] `/api/version` and the version in the footer; uptime and backup alerts (Healthchecks.io or Uptime Kuma). (S)
+- [x] Operations pages in the docs: install, backup and restore, upgrade, monitoring. (M)
 - [ ] Decide what to do with the Vercel deploy: point `VITE_API_URL` at the new installation or retire it. (S)
 
 Done when: the public URL works on a phone, the dashboard shows data, and a backup was restored successfully in an automated test.

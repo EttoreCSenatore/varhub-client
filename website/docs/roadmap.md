@@ -63,14 +63,14 @@ Tamanhos: **P** (até meio dia), **M** (1 a 2 dias), **G** (mais de 2 dias). Cad
 
 Objetivo: uma instalação pública, com demo, que sobrevive a falhas. É o marco mais importante.
 
-- [ ] Dockerfile do servidor e do cliente (arquivos estáticos servidos pelo Caddy). (M)
-- [ ] `docker-compose.prod.yml` com PostgreSQL, API e Caddy com HTTPS automático, e `.env.example` de produção. (M)
-- [ ] Publicar as imagens no GHCR pelo CI. (P)
+- [x] Dockerfile do servidor e do cliente (arquivos estáticos servidos pelo Caddy). (M)
+- [x] `docker-compose.prod.yml` com PostgreSQL, API e Caddy com HTTPS automático, e `.env.example` de produção. (M)
+- [x] Publicar as imagens no GHCR pelo CI. (P)
 - [ ] Instalação de referência na VPS própria, com domínio próprio. (G)
-- [ ] Demo pública: conta de administrador de demonstração e reset noturno com `db:seed`. (M)
-- [ ] Backup diário com `pg_dump`, retenção de 30 dias e **teste de restauração** no CI. (M)
-- [ ] `/api/version` e versão no rodapé; alertas de disponibilidade e de backup (Healthchecks.io ou Uptime Kuma). (P)
-- [ ] Páginas de operação na documentação: instalação, backup e restauração, atualização, monitoramento. (M)
+- [ ] Demo pública: o reset noturno e a conta de demonstração já existem (`demo:reset`, timer do systemd); falta instalar no servidor. (M)
+- [x] Backup diário com `pg_dump`, retenção de 30 dias e **teste de restauração** no CI. (M)
+- [x] `/api/version` e versão no rodapé; alertas de disponibilidade e de backup (Healthchecks.io ou Uptime Kuma). (P)
+- [x] Páginas de operação na documentação: instalação, backup e restauração, atualização, monitoramento. (M)
 - [ ] Decidir o destino do deploy da Vercel: apontar `VITE_API_URL` para a instalação nova ou aposentá-lo. (P)
 
 Pronto quando: a URL pública funciona em um celular, o painel mostra dados, e um backup foi restaurado com sucesso em um teste automático.

@@ -6,5 +6,9 @@
   "sidebar.docsSidebar.category.Técnico": {
     "message": "Technical",
     "description": "The label for category 'Técnico' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Operação": {
+    "message": "Operations",
+    "description": "The label for category 'Operação' in sidebar 'docsSidebar'"
   }
 }
